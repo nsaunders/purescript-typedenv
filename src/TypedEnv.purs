@@ -1,4 +1,14 @@
-module TypedEnv (class ParseValue, EnvError(..), Variable, parseValue) where
+module TypedEnv
+  ( fromEnv
+  , Variable
+  , EnvError(..)
+  , class ParseValue
+  , parseValue
+  , class ReadEnv
+  , readEnv
+  , class ReadEnvFields
+  , readEnvFields
+  ) where
 
 import Prelude
 import Data.Either (Either, note)
@@ -18,9 +28,14 @@ import Type.Data.RowList (RLProxy(..))
 import Type.Equality (class TypeEquals, to)
 import Type.RowList (class ListToRow)
 
+fromEnv :: forall e r proxy. ReadEnv e r => proxy e -> Object String -> Either EnvError (Record r)
+fromEnv = readEnv
+
 data Variable (name :: Symbol) (ty :: Type)
 
 data EnvError = EnvLookupError String | EnvParseError String
+
+derive instance eqEnvError :: Eq EnvError
 
 derive instance genericEnvError :: Generic EnvError _
 
@@ -51,41 +66,41 @@ instance parseValueNumber :: ParseValue Number where
 instance parseValueString :: ParseValue String where
   parseValue = pure
 
-class FromEnv (e :: # Type) (r :: # Type) where
-  fromEnv :: forall proxy. proxy e -> Object String -> Either EnvError (Record r)
+class ReadEnv (e :: # Type) (r :: # Type) where
+  readEnv :: forall proxy. proxy e -> Object String -> Either EnvError (Record r)
 
-instance fromEnvImpl ::
+instance readEnvImpl ::
   ( RowToList e el
   , RowToList r rl
-  , FromEnvRowList el rl r
+  , ReadEnvFields el rl r
   , ListToRow rl r
   , ListToRow el l
-  ) => FromEnv e r where
-    fromEnv _ = fromEnvRowList (RLProxy :: RLProxy el) (RLProxy :: RLProxy rl)
+  ) => ReadEnv e r where
+    readEnv _ = readEnvFields (RLProxy :: RLProxy el) (RLProxy :: RLProxy rl)
 
-class FromEnvRowList (el :: RowList) (rl :: RowList) (r :: # Type) | el -> rl where
-  fromEnvRowList
+class ReadEnvFields (el :: RowList) (rl :: RowList) (r :: # Type) | el -> rl where
+  readEnvFields
     :: forall proxy
      . proxy el
     -> proxy rl
     -> Object String
     -> Either EnvError (Record r)
 
-instance fromEnvRowListCons ::
+instance readEnvFieldsCons ::
   ( IsSymbol name
   , IsSymbol varName
   , ListToRow rlt rt
-  , FromEnvRowList elt rlt rt
+  , ReadEnvFields elt rlt rt
   , Row.Lacks name rt
   , Row.Cons name ty rt r
   , ParseValue ty
-  ) => FromEnvRowList (Cons name (Variable varName ty) elt) (Cons name ty rlt) r where
-    fromEnvRowList _ _ env = Record.insert nameP <$> value <*> tail
+  ) => ReadEnvFields (Cons name (Variable varName ty) elt) (Cons name ty rlt) r where
+    readEnvFields _ _ env = Record.insert nameP <$> value <*> tail
       where
         nameP = SProxy :: SProxy name
         varName = reflectSymbol (SProxy :: SProxy varName)
         value = note (EnvLookupError varName) (lookup varName env) >>= parseValue >>> note (EnvParseError varName)
-        tail = fromEnvRowList (RLProxy :: RLProxy elt) (RLProxy :: RLProxy rlt) env
+        tail = readEnvFields (RLProxy :: RLProxy elt) (RLProxy :: RLProxy rlt) env
 
-instance fromEnvRowListNil :: TypeEquals {} (Record row) => FromEnvRowList Nil Nil row where
-  fromEnvRowList _ _ _ = pure $ to {}
+instance readEnvFieldsNil :: TypeEquals {} (Record row) => ReadEnvFields Nil Nil row where
+  readEnvFields _ _ _ = pure $ to {}
