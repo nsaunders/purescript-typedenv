@@ -1,3 +1,5 @@
+-- | The base module for the TypedEnv library
+
 module TypedEnv
   ( fromEnv
   , Variable
@@ -28,11 +30,14 @@ import Type.Data.RowList (RLProxy(..))
 import Type.Equality (class TypeEquals, to)
 import Type.RowList (class ListToRow)
 
+-- | Gets a record of environment variables from a Node environment.
 fromEnv :: forall e r proxy. ReadEnv e r => proxy e -> Object String -> Either EnvError (Record r)
 fromEnv = readEnv
 
+-- | Specifies the name and type of an environment variable.
 data Variable (name :: Symbol) (ty :: Type)
 
+-- | An error that can occur while reading an environment variable
 data EnvError = EnvLookupError String | EnvParseError String
 
 derive instance eqEnvError :: Eq EnvError
@@ -42,6 +47,7 @@ derive instance genericEnvError :: Generic EnvError _
 instance showEnvError :: Show EnvError where
   show = genericShow
 
+-- | Parses a `String` value to the specified type.
 class ParseValue ty where
   parseValue :: String -> Maybe ty
 
@@ -66,6 +72,7 @@ instance parseValueNumber :: ParseValue Number where
 instance parseValueString :: ParseValue String where
   parseValue = pure
 
+-- | Transforms a row of environment variable specifications to a record.
 class ReadEnv (e :: # Type) (r :: # Type) where
   readEnv :: forall proxy. proxy e -> Object String -> Either EnvError (Record r)
 
@@ -78,6 +85,7 @@ instance readEnvImpl ::
   ) => ReadEnv e r where
     readEnv _ = readEnvFields (RLProxy :: RLProxy el) (RLProxy :: RLProxy rl)
 
+-- | Transforms a list of environment variable specifications to a record.
 class ReadEnvFields (el :: RowList) (rl :: RowList) (r :: # Type) | el -> rl where
   readEnvFields
     :: forall proxy
