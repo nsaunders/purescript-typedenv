@@ -10,6 +10,7 @@ You can edit this file as you like.
     , "foreign-object"
     , "generics-rep"
     , "integers"
+    , "node-process"
     , "numbers"
     , "psci-support"
     , "record"
