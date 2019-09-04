@@ -7,12 +7,12 @@ import Effect (Effect)
 import Effect.Console (log)
 import Node.Process (getEnv)
 import Type.Data.Row (RProxy(..))
-import TypedEnv (Variable, EnvError(..))
+import TypedEnv (type (<:), EnvError(..))
 import TypedEnv (fromEnv) as TypedEnv
 
 type Environment =
-  ( greeting :: Variable "GREETING" String
-  , count :: Variable "COUNT" Int
+  ( greeting :: String <: "GREETING"
+  , count    :: Int    <: "COUNT"
   )
 
 main :: Effect Unit

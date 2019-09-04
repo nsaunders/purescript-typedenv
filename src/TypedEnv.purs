@@ -3,6 +3,8 @@
 module TypedEnv
   ( fromEnv
   , Variable
+  , VariableFlipped
+  , type (<:)
   , EnvError(..)
   , class ParseValue
   , parseValue
@@ -36,6 +38,12 @@ fromEnv = readEnv
 
 -- | Specifies the name and type of an environment variable.
 data Variable (name :: Symbol) (ty :: Type)
+
+-- | An alias for `Variable` with the parameters reversed
+type VariableFlipped ty name = Variable name ty
+
+-- | An alias for `VariableFlipped`
+infixr 5 type VariableFlipped as <:
 
 -- | An error that can occur while reading an environment variable
 data EnvError = EnvLookupError String | EnvParseError String
