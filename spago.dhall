@@ -16,6 +16,7 @@ You can edit this file as you like.
     , "record"
     , "spec"
     , "strings"
+    , "transformers"
     , "typelevel-prelude"
     ]
 , packages =
