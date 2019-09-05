@@ -1,4 +1,4 @@
-module Example.Main where
+module Example.Basic where
 
 import Prelude
 import Data.Either (Either(..))
