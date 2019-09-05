@@ -2,10 +2,11 @@ module Test.Main where
 
 import Prelude
 import Data.Either (Either(..))
+import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse_)
 import Effect (Effect)
 import Effect.Aff (launchAff_)
-import Foreign.Object (fromHomogeneous) as FO
+import Foreign.Object (empty, fromHomogeneous) as FO
 import Test.Spec (describe, it)
 import Test.Spec.Assertions (shouldEqual)
 import Test.Spec.Reporter.Console (consoleReporter)
@@ -69,4 +70,17 @@ main = launchAff_ $ runSpec [consoleReporter] $
         env = FO.fromHomogeneous { "VALUE": "123.456" }
         expected = Right { value: 123.456 }
         actual = fromEnv (RProxy :: RProxy (value :: Number <: "VALUE")) env
+      actual `shouldEqual` expected
+
+    it "parses optional values" do
+      let
+        env = FO.fromHomogeneous { "VALUE": "Hello" }
+        expected = Right { value: Just "Hello" }
+        actual = fromEnv (RProxy :: RProxy (value :: Maybe String <: "VALUE")) env
+      actual `shouldEqual` expected
+
+    it "allows optional values to be absent" do
+      let
+        expected = Right { value: Nothing }
+        actual = fromEnv (RProxy :: RProxy (value :: Maybe String <: "VALUE")) FO.empty
       actual `shouldEqual` expected
