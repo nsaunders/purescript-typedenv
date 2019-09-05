@@ -1,8 +1,9 @@
-module Example.Basic where
+module Example.Main where
 
 import Prelude
 import Data.Either (Either(..))
 import Data.List.Lazy (replicateM)
+import Data.Maybe (Maybe, fromMaybe)
 import Effect (Effect)
 import Effect.Console (log)
 import Node.Process (getEnv)
@@ -11,8 +12,8 @@ import TypedEnv (type (<:), EnvError(..))
 import TypedEnv (fromEnv) as TypedEnv
 
 type Environment =
-  ( greeting :: String <: "GREETING"
-  , count    :: Int    <: "COUNT"
+  ( greeting :: String    <: "GREETING"
+  , repeat   :: Maybe Int <: "REPEAT"
   )
 
 main :: Effect Unit
@@ -23,6 +24,6 @@ main = do
       log $ "ERROR: Required environment variable \"" <> var <> "\" was not set."
     Left (EnvParseError var) ->
       log $ "ERROR: Environment variable \"" <> var <> "\" was formatted incorrectly."
-    Right { greeting, count } -> do
-      _ <- replicateM count $ log greeting
+    Right { greeting, repeat } -> do
+      _ <- replicateM (1 + fromMaybe 0 repeat) $ log greeting
       pure unit
