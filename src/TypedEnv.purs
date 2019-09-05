@@ -6,6 +6,7 @@ module TypedEnv
   , VariableFlipped
   , type (<:)
   , EnvError(..)
+  , envErrorMessage
   , class ReadValue
   , readValue
   , class ParseValue
@@ -56,6 +57,12 @@ derive instance genericEnvError :: Generic EnvError _
 
 instance showEnvError :: Show EnvError where
   show = genericShow
+
+-- | Gets the error message for a given `EnvError` value.
+envErrorMessage :: EnvError -> String
+envErrorMessage = case _ of
+  EnvLookupError var -> "The required variable \"" <> var <> "\" was not specified."
+  EnvParseError var  -> "The variable \"" <> var <> "\" was formatted incorrectly."
 
 -- | Parses a `String` value to the specified type.
 class ParseValue ty where

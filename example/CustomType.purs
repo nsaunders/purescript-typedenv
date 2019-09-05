@@ -8,7 +8,7 @@ import Effect (Effect)
 import Effect.Console (log)
 import Node.Process (getEnv)
 import Type.Data.Row (RProxy(..))
-import TypedEnv (type (<:), class ParseValue, EnvError(..))
+import TypedEnv (type (<:), class ParseValue, envErrorMessage)
 import TypedEnv (fromEnv) as TypedEnv
 
 newtype Port = Port Int
@@ -19,19 +19,17 @@ instance showPort :: Show Port where
 instance parseValuePort :: ParseValue Port where
   parseValue = map Port <<< find (_ <= 65535) <<< Int.fromString
 
-type Environment =
+type Settings =
   ( host :: String <: "HOST"
   , port :: Port   <: "PORT"
   )
 
 main :: Effect Unit
 main = do
-  env <- TypedEnv.fromEnv (RProxy :: RProxy Environment) <$> getEnv
+  env <- TypedEnv.fromEnv (RProxy :: RProxy Settings) <$> getEnv
   case env of
-    Left (EnvLookupError var) ->
-      log $ "ERROR: Required environment variable \"" <> var <> "\" was not set."
-    Left (EnvParseError var) ->
-      log $ "ERROR: Environment variable \"" <> var <> "\" was formatted incorrectly."
+    Left error ->
+      log $ "ERROR: " <> envErrorMessage error
     Right { host, port } -> do
       log $ "Connected to " <> host <> ":" <> show port
       pure unit

@@ -9,22 +9,20 @@ import Effect (Effect)
 import Effect.Console (log)
 import Node.Process (getEnv)
 import Type.Data.Row (RProxy(..))
-import TypedEnv (type (<:), EnvError(..))
+import TypedEnv (type (<:), envErrorMessage)
 import TypedEnv (fromEnv) as TypedEnv
 
-type Environment =
+type Config =
   ( username :: Maybe String <: "USERNAME"
   , repeat   :: Maybe Int    <: "REPEAT"
   )
 
 main :: Effect Unit
 main = do
-  env <- TypedEnv.fromEnv (RProxy :: RProxy Environment) <$> getEnv
+  env <- TypedEnv.fromEnv (RProxy :: RProxy Config) <$> getEnv
   case env of
-    Left (EnvLookupError var) ->
-      log $ "ERROR: Required environment variable \"" <> var <> "\" was not set."
-    Left (EnvParseError var) ->
-      log $ "ERROR: Environment variable \"" <> var <> "\" was formatted incorrectly."
+    Left error ->
+      log $ "ERROR: " <> envErrorMessage error
     Right config@{ repeat } -> do
       _ <- replicateM (1 + fromMaybe 0 repeat) $ log $ runReader greeting config
       pure unit
