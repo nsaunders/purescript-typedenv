@@ -7,10 +7,11 @@ module TypedEnv
   , type (<:)
   , EnvError(..)
   , envErrorMessage
-  , class ReadValue
-  , readValue
+  , Resolved
   , class ParseValue
   , parseValue
+  , class ReadValue
+  , readValue
   , class ReadEnv
   , readEnv
   , class ReadEnvFields
@@ -63,6 +64,9 @@ envErrorMessage :: EnvError -> String
 envErrorMessage = case _ of
   EnvLookupError var -> "The required variable \"" <> var <> "\" was not specified."
   EnvParseError var  -> "The variable \"" <> var <> "\" was formatted incorrectly."
+
+-- | Useful for a type alias representing a resolved environment
+type Resolved (name :: Symbol) ty = ty
 
 -- | Parses a `String` value to the specified type.
 class ParseValue ty where
