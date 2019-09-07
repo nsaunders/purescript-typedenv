@@ -52,7 +52,7 @@ Its `fromEnv` function can now read the configuration from the environment with 
 readConfig env = lmap envErrorMessage $ TypedEnv.fromEnv (RProxy :: RProxy Config) env
 ```
 
-Additional examples can be found [here](./example).
+For more, see the [examples](#examples) section below.
 
 ### Installation
 
@@ -69,4 +69,19 @@ psc-package install typedenv
 [spago](https://github.com/spacchetti/spago):
 ```
 spago install typedenv
+```
+
+### Examples
+
+To run the [examples](example), clone the repository and run one of the following depending on your package manager and build tool, replacing `<example-name>` with the name of one of the examples.
+
+[bower](https://github.com/bower/bower) + [pulp](http://github.com/purescript-contrib/pulp):
+```
+bower install
+pulp run -I example -m Example.<example-name>
+```
+
+[spago](https://github.com/spacchetti/spago):
+```
+spago run -p example/<example-name>.purs -m Example.<example-name>
 ```
