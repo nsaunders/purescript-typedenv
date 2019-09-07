@@ -51,3 +51,5 @@ Its `fromEnv` function can now read the configuration from the environment with 
 ```purescript
 readConfig env = lmap envErrorMessage $ TypedEnv.fromEnv (RProxy :: RProxy Config) env
 ```
+
+Additional examples can be found [here](./example).
