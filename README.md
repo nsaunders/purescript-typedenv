@@ -11,13 +11,13 @@ provides environment variables in the form of an
 (a string map), but it is left up to us to validate and to parse the values into some configuration model that can be used
 throughout the rest of the program.
 
-Perhaps one of the more elegant solutions would be something like this applicative-style lookup/validation/parsing into a
-record:
+Perhaps one of the more elegant and common solutions would be something like this applicative-style lookup/validation/parsing
+into a record:
 
 ```purescript
 type Config =
   { greeting :: String
-  , count :: Int
+  , count    :: Int
   }
 
 readConfig :: Object String -> Either String Config
@@ -29,8 +29,26 @@ readConfig env = { greeting: _, count: _ }
       note ("Missing variable " <> name) $ lookup name env
 ```
 
-However, this is still a bit unsatisfying. For one thing, the explicit lookups, parsing logic, and error handling are a bit
+However, this is a bit unsatisfying. For one thing, the explicit lookups, parsing logic, and error handling are somewhat
 verbose and might start to look like boilerplate as the `Config` model is extended with additional fields. Second, multiple
 non-consecutive lines of code would need to be touched in order to add a new setting. Third, it may not be immediately clear
 at a glance what environment variables are required, their types, or their relationships to the `Config` model (i.e. which
 variable corresponds to each field).
+
+This library attempts to address these issues by extending a configuration model like the above with the small amount of
+additional information required to read it from the environment⁠—the name of the environment variable corresponding to each
+field. For example:
+
+```purescript
+type Config =
+  ( greeting :: String <: "GREETING"
+  , count    :: Int    <: "COUNT"
+  )
+```
+
+Its `fromEnv` function can now read the configuration from the environment with relative ease:
+
+```purescript
+readConfig :: Object String -> Either EnvError Config
+readConfig = TypedEnv.fromEnv (RProxy :: RProxy Config)
+```
