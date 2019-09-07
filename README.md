@@ -53,3 +53,20 @@ readConfig env = lmap envErrorMessage $ TypedEnv.fromEnv (RProxy :: RProxy Confi
 ```
 
 Additional examples can be found [here](./example).
+
+### Installation
+
+[bower](https://github.com/bower/bower):
+```
+bower install --save purescript-typedenv
+```
+
+[psc-package](https://github.com/purescript/psc-package):
+```
+psc-package install typedenv
+```
+
+[spago](https://github.com/spacchetti/spago):
+```
+spago install typedenv
+```
