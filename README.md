@@ -20,7 +20,6 @@ type Config =
   , count    :: Int
   }
 
-readConfig :: Object String -> Either String Config
 readConfig env = { greeting: _, count: _ }
   <$> value "GREETING"
   <*> (value "COUNT" >>= Int.fromString >>> note "Invalid COUNT")
@@ -49,6 +48,5 @@ type Config =
 Its `fromEnv` function can now read the configuration from the environment with relative ease:
 
 ```purescript
-readConfig :: Object String -> Either EnvError { greeting :: String, count :: Int }
-readConfig = TypedEnv.fromEnv (RProxy :: RProxy Config)
+readConfig env = lmap envErrorMessage $ TypedEnv.fromEnv (RProxy :: RProxy Config) env
 ```
