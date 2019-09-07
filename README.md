@@ -1,5 +1,3 @@
-_Note: README is a WIP; things are broken!_
-
 # purescript-typedenv [![build status](https://img.shields.io/travis/nsaunders/purescript-typedenv.svg)](https://travis-ci.org/nsaunders/purescript-typedenv) [![purescript-typedenv on Pursuit](https://pursuit.purescript.org/packages/purescript-typedenv/badge)](https://pursuit.purescript.org/packages/purescript-typedenv) [![typedenv in package-sets](https://img.shields.io/endpoint.svg?url=https://package-sets-badge-0lf69kxs4fbd.runkit.sh/typedenv)](https://github.com/purescript/package-sets)
 ## Parse environment variables using a type-level schema encoding.
 
