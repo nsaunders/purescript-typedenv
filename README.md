@@ -24,10 +24,13 @@ readConfig :: Object String -> Either String Config
 readConfig env = { greeting: _, count: _ }
   <$> value "GREETING"
   <*> (value "COUNT" >>= Int.fromString >>> note "Invalid COUNT")
-
   where
     value name =
       note ("Missing variable " <> name) $ lookup name env
 ```
 
-However, this is still a bit unsatisfying. For one thing, the explicit lookups, parsing logic, and error handling are a bit tedious and might start to look like boilerplate as the `Config` model is extended with additional fields.
+However, this is still a bit unsatisfying. For one thing, the explicit lookups, parsing logic, and error handling are a bit
+verbose and might start to look like boilerplate as the `Config` model is extended with additional fields. Second, multiple
+non-consecutive lines of code would need to be touched in order to add a new setting. Third, it may not be clear at a glance
+what environment variables are required, their types, or their relationships to the `Config` model (i.e. which variable
+corresponds to each field).
