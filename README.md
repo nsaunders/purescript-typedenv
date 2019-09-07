@@ -49,6 +49,6 @@ type Config =
 Its `fromEnv` function can now read the configuration from the environment with relative ease:
 
 ```purescript
-readConfig :: Object String -> Either EnvError Config
+readConfig :: Object String -> Either EnvError { greeting :: String, count :: Int }
 readConfig = TypedEnv.fromEnv (RProxy :: RProxy Config)
 ```
