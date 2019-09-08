@@ -9,7 +9,7 @@ provides environment variables in the form of an
 (a string map), but it is left up to us to validate and to parse the values into some configuration model that can be used
 throughout the rest of the program.
 
-Perhaps one of the more elegant and common solutions would be something like this applicative-style lookup/validation/parsing
+Perhaps one of the more popular solutions would be something like this applicative-style lookup/validation/parsing
 into a record:
 
 ```purescript
@@ -34,8 +34,8 @@ at a glance what environment variables are required, their types, or their relat
 variable corresponds to each field).
 
 This library attempts to address these issues by extending a configuration model like the above with the small amount of
-additional information required to read it from the environment⁠—the name of the environment variable corresponding to each
-field. For example:
+additional information required to read it from the environment⁠, which is the name of the environment variable corresponding
+to each field. For example:
 
 ```purescript
 type Config =
