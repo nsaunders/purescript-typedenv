@@ -83,3 +83,7 @@ pulp run -I example -m Example.<example-name>
 ```
 spago run -p example/<example-name>.purs -m Example.<example-name>
 ```
+
+### Similar ideas
+* [TypedEnv](https://github.com/freight-hub/TypedEnv)
+* [dotenv-hs](https://github.com/stackbuilders/dotenv-hs) can validate variables against a `.schema.yml` file.
