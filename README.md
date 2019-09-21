@@ -18,7 +18,7 @@ type Config =
   , count    :: Int
   }
 
-readConfig :: Either String Config
+readConfig :: Foreign Object -> Either String Config
 readConfig env = { greeting: _, count: _ }
   <$> value "GREETING"
   <*> (value "COUNT" >>= Int.fromString >>> note "Invalid COUNT")
