@@ -13,6 +13,8 @@ Perhaps one of the more popular solutions would be something like this applicati
 into a record:
 
 ```purescript
+import Data.Either (Either, note)
+
 type Config =
   { greeting :: String
   , count    :: Int
