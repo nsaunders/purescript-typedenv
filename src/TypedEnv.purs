@@ -29,7 +29,6 @@ import Data.Number (fromString) as Number
 import Data.String.CodeUnits (uncons) as String
 import Data.String.Common (toLower)
 import Data.Symbol (class IsSymbol, SProxy(..), reflectSymbol)
-import Data.Tuple (Tuple(..))
 import Foreign.Object (Object, lookup)
 import Prim.Row (class Cons, class Lacks) as Row
 import Prim.RowList (class RowToList, kind RowList, Cons, Nil)
@@ -142,15 +141,16 @@ instance readEnvFieldsCons ::
   , Row.Cons name ty rt r
   , ReadValue ty
   ) => ReadEnvFields (Cons name (Variable varName ty) elt) (Cons name ty rlt) r where
-    readEnvFields _ _ env = case (Tuple valueE tailE) of
-      Tuple (Left valueErr) (Left tailErrs) -> Left $ cons valueErr tailErrs
-      Tuple (Left valueErr) _ -> Left [valueErr]
-      Tuple (Right value) _ -> Record.insert nameP value <$> tailE
+    readEnvFields _ _ env = insert value tail
       where
         nameP = SProxy :: SProxy name
         varName = reflectSymbol (SProxy :: SProxy varName)
-        valueE = readValue varName env
-        tailE = readEnvFields (RLProxy :: RLProxy elt) (RLProxy :: RLProxy rlt) env
+        value = readValue varName env
+        tail = readEnvFields (RLProxy :: RLProxy elt) (RLProxy :: RLProxy rlt) env
+        
+        insert (Left valueErr) (Left tailErrs) = Left $ cons valueErr tailErrs
+        insert (Left valueErr) (Right _) = Left [valueErr]
+        insert (Right val) tailE = Record.insert nameP val <$> tailE
 
 instance readEnvFieldsNil :: TypeEquals {} (Record row) => ReadEnvFields Nil Nil row where
   readEnvFields _ _ _ = pure $ to {}
