@@ -16,8 +16,8 @@ main :: Effect Unit
 main = do
   env <- TypedEnv.fromEnv (RProxy :: RProxy Settings) <$> getEnv
   case env of
-    Left error ->
-      log $ "ERROR: " <> envErrorMessage error
+    Left errors ->
+      log $ "ERROR: " <> show (map envErrorMessage errors)
     Right { username } -> do
       log $ "Hello, " <> fromMaybe "Sailor" username <> "!"
       pure unit

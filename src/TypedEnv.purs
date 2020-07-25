@@ -19,7 +19,8 @@ module TypedEnv
   ) where
 
 import Prelude
-import Data.Either (Either, note)
+import Data.Array (cons)
+import Data.Either (Either(..), note)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Int (fromString) as Int
@@ -28,6 +29,7 @@ import Data.Number (fromString) as Number
 import Data.String.CodeUnits (uncons) as String
 import Data.String.Common (toLower)
 import Data.Symbol (class IsSymbol, SProxy(..), reflectSymbol)
+import Data.Tuple (Tuple(..))
 import Foreign.Object (Object, lookup)
 import Prim.Row (class Cons, class Lacks) as Row
 import Prim.RowList (class RowToList, kind RowList, Cons, Nil)
@@ -37,7 +39,7 @@ import Type.Equality (class TypeEquals, to)
 import Type.RowList (class ListToRow)
 
 -- | Gets a record of environment variables from a Node environment.
-fromEnv :: forall e r proxy. ReadEnv e r => proxy e -> Object String -> Either EnvError (Record r)
+fromEnv :: forall e r proxy. ReadEnv e r => proxy e -> Object String -> Either (Array EnvError) (Record r)
 fromEnv = readEnv
 
 -- | Specifies the name and type of an environment variable.
@@ -111,7 +113,7 @@ else instance readValueRequired :: ParseValue a => ReadValue a where
 
 -- | Transforms a row of environment variable specifications to a record.
 class ReadEnv (e :: # Type) (r :: # Type) where
-  readEnv :: forall proxy. proxy e -> Object String -> Either EnvError (Record r)
+  readEnv :: forall proxy. proxy e -> Object String -> Either (Array EnvError) (Record r)
 
 instance readEnvImpl ::
   ( RowToList e el
@@ -129,7 +131,7 @@ class ReadEnvFields (el :: RowList) (rl :: RowList) (r :: # Type) | el -> rl whe
      . proxy el
     -> proxy rl
     -> Object String
-    -> Either EnvError (Record r)
+    -> Either (Array EnvError) (Record r)
 
 instance readEnvFieldsCons ::
   ( IsSymbol name
@@ -140,12 +142,15 @@ instance readEnvFieldsCons ::
   , Row.Cons name ty rt r
   , ReadValue ty
   ) => ReadEnvFields (Cons name (Variable varName ty) elt) (Cons name ty rlt) r where
-    readEnvFields _ _ env = Record.insert nameP <$> value <*> tail
+    readEnvFields _ _ env = case (Tuple valueE tailE) of
+      Tuple (Left valueErr) (Left tailErrs) -> Left $ cons valueErr tailErrs
+      Tuple (Left valueErr) _ -> Left [valueErr]
+      Tuple (Right value) _ -> Record.insert nameP value <$> tailE
       where
         nameP = SProxy :: SProxy name
         varName = reflectSymbol (SProxy :: SProxy varName)
-        value = readValue varName env
-        tail = readEnvFields (RLProxy :: RLProxy elt) (RLProxy :: RLProxy rlt) env
+        valueE = readValue varName env
+        tailE = readEnvFields (RLProxy :: RLProxy elt) (RLProxy :: RLProxy rlt) env
 
 instance readEnvFieldsNil :: TypeEquals {} (Record row) => ReadEnvFields Nil Nil row where
   readEnvFields _ _ _ = pure $ to {}
