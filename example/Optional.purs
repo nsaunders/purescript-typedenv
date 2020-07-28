@@ -17,7 +17,7 @@ main = do
   env <- TypedEnv.fromEnv (RProxy :: RProxy Settings) <$> getEnv
   case env of
     Left errors ->
-      log $ "ERROR: " <> show (map envErrorMessage errors)
+      log $ "ERROR: " <> envErrorMessage errors
     Right { username } -> do
       log $ "Hello, " <> fromMaybe "Sailor" username <> "!"
       pure unit

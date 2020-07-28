@@ -22,7 +22,7 @@ main = do
   env <- TypedEnv.fromEnv (RProxy :: RProxy Config) <$> getEnv
   case env of
     Left errors ->
-      log $ "ERROR: " <> show (map envErrorMessage errors)
+      log $ "ERROR: " <> envErrorMessage errors
     Right config@{ repeat } -> do
       _ <- replicateM (1 + fromMaybe 0 repeat) $ log $ runReader greeting config
       pure unit

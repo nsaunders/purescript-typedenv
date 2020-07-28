@@ -28,21 +28,21 @@ main = launchAff_ $ runSpec [consoleReporter] $
     it "indicates when a lookup has failed" do
       let
         env = FO.fromHomogeneous { "GREETING": "Hello" }
-        expected = Left [EnvLookupError "MESSAGE"]
+        expected = Left (EnvLookupError "MESSAGE")
         actual = fromEnv (RProxy :: RProxy (message :: String <: "MESSAGE")) env
       actual `shouldEqual` expected
 
     it "indicates when parsing a value has failed" do
       let
         env = FO.fromHomogeneous { "DEBUG": "50" }
-        expected = Left [EnvParseError "DEBUG"]
+        expected = Left (EnvParseError "DEBUG")
         actual = fromEnv (RProxy :: RProxy (debug :: Boolean <: "DEBUG")) env
       actual `shouldEqual` expected
 
     it "indicates when parsing multiple values has failed" do
       let
         env = FO.fromHomogeneous { "A": "err"}
-        expected = Left [EnvParseError "A", EnvLookupError "B"]
+        expected = Left (EnvErrors [EnvParseError "A", EnvLookupError "B"])
         actual = fromEnv (RProxy :: RProxy (a :: Int <: "A", b :: String <: "B")) env
       actual `shouldEqual` expected
 

@@ -20,7 +20,7 @@ main = do
   env <- TypedEnv.fromEnv (RProxy :: RProxy Environment) <$> getEnv
   case env of
     Left errors ->
-      log $ "ERROR: " <> show (map envErrorMessage errors)
+      log $ "ERROR: " <> envErrorMessage errors
     Right { greeting, count } -> do
       _ <- replicateM count (log greeting)
       pure unit

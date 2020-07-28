@@ -19,7 +19,6 @@ module TypedEnv
   ) where
 
 import Prelude
-import Data.Array (cons)
 import Data.Either (Either(..), note)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
@@ -27,7 +26,7 @@ import Data.Int (fromString) as Int
 import Data.Maybe (Maybe(..))
 import Data.Number (fromString) as Number
 import Data.String.CodeUnits (uncons) as String
-import Data.String.Common (toLower)
+import Data.String.Common (toLower, joinWith)
 import Data.Symbol (class IsSymbol, SProxy(..), reflectSymbol)
 import Foreign.Object (Object, lookup)
 import Prim.Row (class Cons, class Lacks) as Row
@@ -38,7 +37,7 @@ import Type.Equality (class TypeEquals, to)
 import Type.RowList (class ListToRow)
 
 -- | Gets a record of environment variables from a Node environment.
-fromEnv :: forall e r proxy. ReadEnv e r => proxy e -> Object String -> Either (Array EnvError) (Record r)
+fromEnv :: forall e r proxy. ReadEnv e r => proxy e -> Object String -> Either EnvError (Record r)
 fromEnv = readEnv
 
 -- | Specifies the name and type of an environment variable.
@@ -51,20 +50,28 @@ type VariableFlipped ty name = Variable name ty
 infixr 5 type VariableFlipped as <:
 
 -- | An error that can occur while reading an environment variable
-data EnvError = EnvLookupError String | EnvParseError String
+data EnvError = EnvLookupError String | EnvParseError String | EnvErrors (Array EnvError)
 
 derive instance eqEnvError :: Eq EnvError
 
 derive instance genericEnvError :: Generic EnvError _
 
+instance semigroupEnvError :: Semigroup EnvError where
+  append (EnvErrors aErrors) (EnvErrors bErrors) = EnvErrors $ aErrors <> bErrors
+  append (EnvErrors errors) err = EnvErrors $ errors <> [err]
+  append err (EnvErrors errors) = EnvErrors $ [err] <> errors
+  append errA errB = EnvErrors [errA, errB]
+
 instance showEnvError :: Show EnvError where
-  show = genericShow
+  show (EnvErrors errors) = joinWith "\n" $ map genericShow errors
+  show err = genericShow err
 
 -- | Gets the error message for a given `EnvError` value.
 envErrorMessage :: EnvError -> String
 envErrorMessage = case _ of
   EnvLookupError var -> "The required variable \"" <> var <> "\" was not specified."
   EnvParseError var  -> "The variable \"" <> var <> "\" was formatted incorrectly."
+  EnvErrors errors -> joinWith "\n" $ map envErrorMessage errors
 
 -- | Useful for a type alias representing a resolved environment
 type Resolved (name :: Symbol) ty = ty
@@ -112,7 +119,7 @@ else instance readValueRequired :: ParseValue a => ReadValue a where
 
 -- | Transforms a row of environment variable specifications to a record.
 class ReadEnv (e :: # Type) (r :: # Type) where
-  readEnv :: forall proxy. proxy e -> Object String -> Either (Array EnvError) (Record r)
+  readEnv :: forall proxy. proxy e -> Object String -> Either EnvError (Record r)
 
 instance readEnvImpl ::
   ( RowToList e el
@@ -130,7 +137,7 @@ class ReadEnvFields (el :: RowList) (rl :: RowList) (r :: # Type) | el -> rl whe
      . proxy el
     -> proxy rl
     -> Object String
-    -> Either (Array EnvError) (Record r)
+    -> Either EnvError (Record r)
 
 instance readEnvFieldsCons ::
   ( IsSymbol name
@@ -147,10 +154,9 @@ instance readEnvFieldsCons ::
         varName = reflectSymbol (SProxy :: SProxy varName)
         value = readValue varName env
         tail = readEnvFields (RLProxy :: RLProxy elt) (RLProxy :: RLProxy rlt) env
-        
-        insert (Left valueErr) (Left tailErrs) = Left $ cons valueErr tailErrs
-        insert (Left valueErr) (Right _) = Left [valueErr]
-        insert (Right val) tailE = Record.insert nameP val <$> tailE
+
+        insert (Left valueErr) (Left tailErrs) = Left $ valueErr <> tailErrs
+        insert valE tailE = Record.insert nameP <$> valE <*> tailE
 
 instance readEnvFieldsNil :: TypeEquals {} (Record row) => ReadEnvFields Nil Nil row where
   readEnvFields _ _ _ = pure $ to {}
