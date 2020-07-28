@@ -39,8 +39,8 @@ main :: Effect Unit
 main = do
   eitherConfig <- TypedEnv.fromEnv (RProxy :: RProxy (Config Variable)) <$> getEnv
   case eitherConfig of
-    Left errors ->
-      log $ "ERROR: " <> envErrorMessage errors
+    Left error ->
+      log $ "ERROR: " <> envErrorMessage error
     Right config ->
       runAppM config sendAlert
 

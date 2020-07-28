@@ -19,8 +19,8 @@ main :: Effect Unit
 main = do
   env <- TypedEnv.fromEnv (RProxy :: RProxy Environment) <$> getEnv
   case env of
-    Left errors ->
-      log $ "ERROR: " <> envErrorMessage errors
+    Left error ->
+      log $ "ERROR: " <> envErrorMessage error
     Right { greeting, count } -> do
       _ <- replicateM count (log greeting)
       pure unit

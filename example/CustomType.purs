@@ -28,8 +28,8 @@ main :: Effect Unit
 main = do
   env <- TypedEnv.fromEnv (RProxy :: RProxy Settings) <$> getEnv
   case env of
-    Left errors ->
-      log $ "ERROR: " <> envErrorMessage errors
+    Left error ->
+      log $ "ERROR: " <> envErrorMessage error
     Right { host, port } -> do
       log $ "Connected to " <> host <> ":" <> show port
       pure unit
