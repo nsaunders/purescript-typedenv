@@ -4,7 +4,6 @@
     [ "console"
     , "effect"
     , "foreign-object"
-    , "generics-rep"
     , "integers"
     , "node-process"
     , "numbers"

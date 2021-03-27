@@ -21,7 +21,7 @@ module TypedEnv
 import Prelude
 import Data.Either (Either, note)
 import Data.Generic.Rep (class Generic)
-import Data.Generic.Rep.Show (genericShow)
+import Data.Show.Generic (genericShow)
 import Data.Int (fromString) as Int
 import Data.Maybe (Maybe(..))
 import Data.Number (fromString) as Number
@@ -30,7 +30,7 @@ import Data.String.Common (toLower)
 import Data.Symbol (class IsSymbol, SProxy(..), reflectSymbol)
 import Foreign.Object (Object, lookup)
 import Prim.Row (class Cons, class Lacks) as Row
-import Prim.RowList (class RowToList, kind RowList, Cons, Nil)
+import Prim.RowList (class RowToList, RowList, Cons, Nil)
 import Record (insert) as Record
 import Type.Data.RowList (RLProxy(..))
 import Type.Equality (class TypeEquals, to)
@@ -66,6 +66,7 @@ envErrorMessage = case _ of
   EnvParseError var  -> "The variable \"" <> var <> "\" was formatted incorrectly."
 
 -- | Useful for a type alias representing a resolved environment
+type Resolved :: forall k. Symbol -> k -> k
 type Resolved (name :: Symbol) ty = ty
 
 -- | Parses a `String` value to the specified type.
@@ -110,7 +111,7 @@ else instance readValueRequired :: ParseValue a => ReadValue a where
     >>= (parseValue >>> note (EnvParseError name))
 
 -- | Transforms a row of environment variable specifications to a record.
-class ReadEnv (e :: # Type) (r :: # Type) where
+class ReadEnv (e :: Row Type) (r :: Row Type) where
   readEnv :: forall proxy. proxy e -> Object String -> Either EnvError (Record r)
 
 instance readEnvImpl ::
@@ -123,7 +124,7 @@ instance readEnvImpl ::
     readEnv _ = readEnvFields (RLProxy :: RLProxy el) (RLProxy :: RLProxy rl)
 
 -- | Transforms a list of environment variable specifications to a record.
-class ReadEnvFields (el :: RowList) (rl :: RowList) (r :: # Type) | el -> rl where
+class ReadEnvFields (el :: RowList Type) (rl :: RowList Type) (r :: Row Type) | el -> rl where
   readEnvFields
     :: forall proxy
      . proxy el
