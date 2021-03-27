@@ -8,7 +8,6 @@ You can edit this file as you like.
     [ "console"
     , "effect"
     , "foreign-object"
-    , "generics-rep"
     , "integers"
     , "node-process"
     , "numbers"
