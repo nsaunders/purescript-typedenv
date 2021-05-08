@@ -1,21 +1,24 @@
-{ name =
-    "typedenv"
+{ name = "typedenv"
 , dependencies =
-    [ "console"
-    , "effect"
-    , "foreign-object"
-    , "integers"
-    , "node-process"
-    , "numbers"
-    , "psci-support"
-    , "record"
-    , "spec"
-    , "strings"
-    , "transformers"
-    , "typelevel-prelude"
-    ]
-, packages =
-    ./packages.dhall
-, sources =
-    [ "src/**/*.purs", "test/**/*.purs" ]
+  [ "aff"
+  , "console"
+  , "effect"
+  , "either"
+  , "foldable-traversable"
+  , "foreign-object"
+  , "integers"
+  , "maybe"
+  , "node-process"
+  , "numbers"
+  , "prelude"
+  , "psci-support"
+  , "record"
+  , "spec"
+  , "strings"
+  , "transformers"
+  , "type-equality"
+  , "typelevel-prelude"
+  ]
+, packages = ./packages.dhall
+, sources = [ "src/**/*.purs", "test/**/*.purs" ]
 }
