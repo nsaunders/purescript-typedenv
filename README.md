@@ -1,4 +1,4 @@
-# purescript-typedenv [![Build](https://github.com/nsaunders/purescript-typedenv/workflows/Build/badge.svg)](https://github.com/nsaunders/purescript-typedenv/actions/workflows/build.yml) [![purescript-typedenv on Pursuit](https://pursuit.purescript.org/packages/purescript-typedenv/badge)](https://pursuit.purescript.org/packages/purescript-typedenv) [![typedenv in package-sets](https://img.shields.io/endpoint.svg?url=https://package-sets-badge-zxa7vacp3dju.runkit.sh/typedenv)](https://github.com/purescript/package-sets)
+# purescript-typedenv [![Build](https://github.com/nsaunders/purescript-typedenv/workflows/Build/badge.svg)](https://github.com/nsaunders/purescript-typedenv/actions/workflows/build.yml) [![Latest release](http://img.shields.io/github/release/nsaunders/purescript-typedenv.svg)](https://github.com/nsaunders/purescript-typedenv/releases) [![PureScript registry](https://img.shields.io/badge/dynamic/json?color=informational&label=registry&query=%24.typedenv.version&url=https%3A%2F%2Fraw.githubusercontent.com%2Fpurescript%2Fpackage-sets%2Fmaster%2Fpackages.json)](https://github.com/purescript/registry) [![purescript-typedenv on Pursuit](https://pursuit.purescript.org/packages/purescript-typedenv/badge)](https://pursuit.purescript.org/packages/purescript-typedenv)
 ## Parse environment variables according to a type-level specification.
 
 <img src="https://raw.githubusercontent.com/nsaunders/purescript-typedenv/master/img/tile.png" alt="purescript-typedenv" align="right" />
@@ -54,17 +54,7 @@ For more, see the [examples](#examples) section below.
 
 ### Installation
 
-[bower](https://github.com/bower/bower):
-```
-bower install --save purescript-typedenv
-```
-
-[psc-package](https://github.com/purescript/psc-package):
-```
-psc-package install typedenv
-```
-
-[spago](https://github.com/spacchetti/spago):
+via [spago](https://github.com/spacchetti/spago):
 ```
 spago install typedenv
 ```
