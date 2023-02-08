@@ -1,23 +1,27 @@
-module Example.Optional where
+module Example.Basic where
 
 import Prelude
+
 import Data.Either (Either(..))
-import Data.Maybe (Maybe, fromMaybe)
+import Data.List.Lazy (replicateM)
 import Effect (Effect)
 import Effect.Console (log)
 import Node.Process (getEnv)
-import Type.Data.Row (RProxy(..))
+import Type.Proxy (Proxy(..))
 import TypedEnv (type (<:), envErrorMessage)
 import TypedEnv (fromEnv) as TypedEnv
 
-type Settings = ( username :: Maybe String <: "USERNAME" )
+type Environment =
+  ( greeting :: String <: "GREETING"
+  , count :: Int <: "COUNT"
+  )
 
 main :: Effect Unit
 main = do
-  env <- TypedEnv.fromEnv (RProxy :: RProxy Settings) <$> getEnv
+  env <- TypedEnv.fromEnv (Proxy :: Proxy Environment) <$> getEnv
   case env of
     Left error ->
       log $ "ERROR: " <> envErrorMessage error
-    Right { username } -> do
-      log $ "Hello, " <> fromMaybe "Sailor" username <> "!"
+    Right { greeting, count } -> do
+      _ <- replicateM count (log greeting)
       pure unit

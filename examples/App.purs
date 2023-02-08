@@ -1,6 +1,7 @@
 module Example.App where
 
 import Prelude
+
 import Control.Monad.Reader (ReaderT, asks, runReaderT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Data.Either (Either(..))
@@ -8,13 +9,13 @@ import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Console (log)
 import Node.Process (getEnv)
-import Type.Data.Row (RProxy(..))
 import Type.Equality (class TypeEquals, from)
+import Type.Proxy (Proxy(..))
 import TypedEnv (Resolved, Variable, envErrorMessage)
 import TypedEnv (fromEnv) as TypedEnv
 
 type Config f =
-  ( alertEmail   :: f "ALERT_EMAIL" String
+  ( alertEmail :: f "ALERT_EMAIL" String
   , alertSubject :: f "ALERT_SUBJECT" String
   )
 
@@ -37,7 +38,7 @@ instance monadAskAppM :: TypeEquals e ResolvedConfig => MonadAsk e AppM where
 
 main :: Effect Unit
 main = do
-  eitherConfig <- TypedEnv.fromEnv (RProxy :: RProxy (Config Variable)) <$> getEnv
+  eitherConfig <- TypedEnv.fromEnv (Proxy :: Proxy (Config Variable)) <$> getEnv
   case eitherConfig of
     Left error ->
       log $ "ERROR: " <> envErrorMessage error
@@ -48,4 +49,7 @@ sendAlert :: AppM Unit
 sendAlert = do
   email <- asks _.alertEmail
   subject <- asks _.alertSubject
-  liftEffect $ log ("Sending alert with subject \"" <> subject <> "\" to \"" <> email <> "\"...done.")
+  liftEffect $ log
+    ( "Sending alert with subject \"" <> subject <> "\" to \"" <> email <>
+        "\"...done."
+    )

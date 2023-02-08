@@ -19,25 +19,31 @@ module TypedEnv
   ) where
 
 import Prelude
+
 import Data.Either (Either, note)
 import Data.Generic.Rep (class Generic)
-import Data.Show.Generic (genericShow)
 import Data.Int (fromString) as Int
 import Data.Maybe (Maybe(..))
 import Data.Number (fromString) as Number
+import Data.Show.Generic (genericShow)
 import Data.String.CodeUnits (uncons) as String
 import Data.String.Common (toLower)
-import Data.Symbol (class IsSymbol, SProxy(..), reflectSymbol)
+import Data.Symbol (class IsSymbol, reflectSymbol)
 import Foreign.Object (Object, lookup)
 import Prim.Row (class Cons, class Lacks) as Row
-import Prim.RowList (class RowToList, RowList, Cons, Nil)
+import Prim.RowList (class RowToList, Cons, Nil, RowList)
 import Record (insert) as Record
-import Type.Data.RowList (RLProxy(..))
 import Type.Equality (class TypeEquals, to)
+import Type.Proxy (Proxy(..))
 import Type.RowList (class ListToRow)
 
 -- | Gets a record of environment variables from a Node environment.
-fromEnv :: forall e r proxy. ReadEnv e r => proxy e -> Object String -> Either EnvError (Record r)
+fromEnv
+  :: forall e r proxy
+   . ReadEnv e r
+  => proxy e
+  -> Object String
+  -> Either EnvError (Record r)
 fromEnv = readEnv
 
 -- | Specifies the name and type of an environment variable.
@@ -62,8 +68,10 @@ instance showEnvError :: Show EnvError where
 -- | Gets the error message for a given `EnvError` value.
 envErrorMessage :: EnvError -> String
 envErrorMessage = case _ of
-  EnvLookupError var -> "The required variable \"" <> var <> "\" was not specified."
-  EnvParseError var  -> "The variable \"" <> var <> "\" was formatted incorrectly."
+  EnvLookupError var -> "The required variable \"" <> var <>
+    "\" was not specified."
+  EnvParseError var -> "The variable \"" <> var <>
+    "\" was formatted incorrectly."
 
 -- | Useful for a type alias representing a resolved environment
 type Resolved :: forall k. Symbol -> k -> k
@@ -108,11 +116,12 @@ instance readValueOptional :: ParseValue a => ReadValue (Maybe a) where
 else instance readValueRequired :: ParseValue a => ReadValue a where
   readValue name env =
     (note (EnvLookupError name) $ lookup name env)
-    >>= (parseValue >>> note (EnvParseError name))
+      >>= (parseValue >>> note (EnvParseError name))
 
 -- | Transforms a row of environment variable specifications to a record.
 class ReadEnv (e :: Row Type) (r :: Row Type) where
-  readEnv :: forall proxy. proxy e -> Object String -> Either EnvError (Record r)
+  readEnv
+    :: forall proxy. proxy e -> Object String -> Either EnvError (Record r)
 
 instance readEnvImpl ::
   ( RowToList e el
@@ -120,11 +129,14 @@ instance readEnvImpl ::
   , ReadEnvFields el rl r
   , ListToRow rl r
   , ListToRow el l
-  ) => ReadEnv e r where
-    readEnv _ = readEnvFields (RLProxy :: RLProxy el) (RLProxy :: RLProxy rl)
+  ) =>
+  ReadEnv e r where
+  readEnv _ = readEnvFields (Proxy :: Proxy el) (Proxy :: Proxy rl)
 
 -- | Transforms a list of environment variable specifications to a record.
-class ReadEnvFields (el :: RowList Type) (rl :: RowList Type) (r :: Row Type) | el -> rl where
+class
+  ReadEnvFields (el :: RowList Type) (rl :: RowList Type) (r :: Row Type)
+  | el -> rl where
   readEnvFields
     :: forall proxy
      . proxy el
@@ -140,13 +152,16 @@ instance readEnvFieldsCons ::
   , Row.Lacks name rt
   , Row.Cons name ty rt r
   , ReadValue ty
-  ) => ReadEnvFields (Cons name (Variable varName ty) elt) (Cons name ty rlt) r where
-    readEnvFields _ _ env = Record.insert nameP <$> value <*> tail
-      where
-        nameP = SProxy :: SProxy name
-        varName = reflectSymbol (SProxy :: SProxy varName)
-        value = readValue varName env
-        tail = readEnvFields (RLProxy :: RLProxy elt) (RLProxy :: RLProxy rlt) env
+  ) =>
+  ReadEnvFields (Cons name (Variable varName ty) elt) (Cons name ty rlt) r where
+  readEnvFields _ _ env = Record.insert nameP <$> value <*> tail
+    where
+    nameP = Proxy :: Proxy name
+    varName = reflectSymbol (Proxy :: Proxy varName)
+    value = readValue varName env
+    tail = readEnvFields (Proxy :: Proxy elt) (Proxy :: Proxy rlt) env
 
-instance readEnvFieldsNil :: TypeEquals {} (Record row) => ReadEnvFields Nil Nil row where
+instance readEnvFieldsNil ::
+  TypeEquals {} (Record row) =>
+  ReadEnvFields Nil Nil row where
   readEnvFields _ _ _ = pure $ to {}
