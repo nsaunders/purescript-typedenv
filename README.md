@@ -59,7 +59,7 @@ For more, see the [examples](#examples) section below.
 ### Installation
 
 via [spago](https://github.com/spacchetti/spago):
-```
+```bash
 spago install typedenv
 ```
 
@@ -67,7 +67,7 @@ spago install typedenv
 
 To run one of the [examples](example), clone the repository and run the following command, replacing `<example-name>` with the name of the example.
 
-```purescript
+```bash
 spago run -p example/<example-name>.purs -m Example.<example-name>
 ```
 
