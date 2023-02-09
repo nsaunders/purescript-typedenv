@@ -8,7 +8,7 @@ import Effect (Effect)
 import Effect.Console (log)
 import Node.Process (getEnv)
 import Type.Proxy (Proxy(..))
-import TypedEnv (envErrorMessage)
+import TypedEnv (printEnvError)
 import TypedEnv (fromEnv) as TypedEnv
 
 type Settings = ("USERNAME" :: Maybe String)
@@ -18,7 +18,7 @@ main = do
   env <- TypedEnv.fromEnv (Proxy :: Proxy Settings) <$> getEnv
   case env of
     Left error ->
-      log $ "ERROR: " <> envErrorMessage error
+      log $ "ERROR: " <> printEnvError error
     Right { "USERNAME": username } -> do
       log $ "Hello, " <> fromMaybe "Sailor" username <> "!"
       pure unit

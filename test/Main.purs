@@ -3,6 +3,7 @@ module Test.Main where
 import Prelude
 
 import Data.Either (Either(..))
+import Data.List (List(Nil), (:))
 import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse_)
 import Effect (Effect)
@@ -31,21 +32,21 @@ main = launchAff_ $ runSpec [ consoleReporter ] $
     it "indicates when a lookup has failed" do
       let
         env = FO.fromHomogeneous { "GREETING": "Hello" }
-        expected = Left (EnvLookupError "MESSAGE")
+        expected = Left (pure $ EnvLookupError "MESSAGE")
         actual = fromEnv (Proxy :: _ ("MESSAGE" :: String)) env
       actual `shouldEqual` expected
 
     it "indicates when parsing a value has failed" do
       let
         env = FO.fromHomogeneous { "DEBUG": "50" }
-        expected = Left (EnvParseError "DEBUG")
+        expected = Left (pure $ EnvParseError "DEBUG")
         actual = fromEnv (Proxy :: _ ("DEBUG" :: Boolean)) env
       actual `shouldEqual` expected
 
     it "indicates when parsing multiple values has failed" do
       let
         env = FO.fromHomogeneous { "A": "err" }
-        expected = Left (EnvErrors [ EnvParseError "A", EnvLookupError "B" ])
+        expected = Left (EnvParseError "A" : EnvLookupError "B" : Nil)
         actual = fromEnv
           (Proxy :: _ ("A" :: Int, "B" :: String))
           env

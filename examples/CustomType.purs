@@ -9,7 +9,7 @@ import Effect (Effect)
 import Effect.Console (log)
 import Node.Process (getEnv)
 import Type.Proxy (Proxy(..))
-import TypedEnv (class ParseValue, envErrorMessage)
+import TypedEnv (class ParseValue, printEnvError)
 import TypedEnv (fromEnv) as TypedEnv
 
 newtype Port = Port Int
@@ -30,7 +30,7 @@ main = do
   env <- TypedEnv.fromEnv (Proxy :: Proxy Settings) <$> getEnv
   case env of
     Left error ->
-      log $ "ERROR: " <> envErrorMessage error
+      log $ "ERROR: " <> printEnvError error
     Right { "HOST": host, "PORT": port } -> do
       log $ "Connected to " <> host <> ":" <> show port
       pure unit

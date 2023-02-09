@@ -11,7 +11,7 @@ import Effect.Console (log)
 import Node.Process (getEnv)
 import Type.Equality (class TypeEquals, from)
 import Type.Proxy (Proxy(..))
-import TypedEnv (envErrorMessage)
+import TypedEnv (printEnvError)
 import TypedEnv (fromEnv) as TypedEnv
 
 type Config =
@@ -39,7 +39,7 @@ main = do
   eitherConfig <- TypedEnv.fromEnv (Proxy :: _ Config) <$> getEnv
   case eitherConfig of
     Left error ->
-      log $ "ERROR: " <> envErrorMessage error
+      log $ "ERROR: " <> printEnvError error
     Right config ->
       runAppM config sendAlert
 

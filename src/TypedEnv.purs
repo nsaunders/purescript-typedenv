@@ -2,8 +2,8 @@
 
 module TypedEnv
   ( fromEnv
+  , printEnvError
   , EnvError(..)
-  , envErrorMessage
   , class ParseValue
   , parseValue
   , class ReadValue
@@ -16,14 +16,16 @@ module TypedEnv
 
 import Prelude
 
+import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
 import Data.Generic.Rep (class Generic)
 import Data.Int (fromString) as Int
+import Data.List (List(..), (:), foldMap)
 import Data.Maybe (Maybe(..))
 import Data.Number (fromString) as Number
 import Data.Show.Generic (genericShow)
 import Data.String.CodeUnits (uncons) as String
-import Data.String.Common (joinWith, toLower)
+import Data.String.Common (toLower)
 import Data.Symbol (class IsSymbol, reflectSymbol)
 import Foreign.Object (Object, lookup)
 import Prim.Row (class Cons, class Lacks) as Row
@@ -39,38 +41,34 @@ fromEnv
    . ReadEnv e r
   => proxy e
   -> Object String
-  -> Either EnvError (Record r)
+  -> Either (List EnvError) (Record r)
 fromEnv = readEnv
 
 -- | An error that can occur while reading an environment variable
 data EnvError
   = EnvLookupError String
   | EnvParseError String
-  | EnvErrors (Array EnvError)
 
 derive instance eqEnvError :: Eq EnvError
 
 derive instance genericEnvError :: Generic EnvError _
 
-instance semigroupEnvError :: Semigroup EnvError where
-  append (EnvErrors aErrors) (EnvErrors bErrors) = EnvErrors $ aErrors <>
-    bErrors
-  append (EnvErrors errors) err = EnvErrors $ errors <> [ err ]
-  append err (EnvErrors errors) = EnvErrors $ [ err ] <> errors
-  append errA errB = EnvErrors [ errA, errB ]
-
 instance showEnvError :: Show EnvError where
-  show (EnvErrors errors) = joinWith "\n" $ map genericShow errors
   show err = genericShow err
 
 -- | Gets the error message for a given `EnvError` value.
-envErrorMessage :: EnvError -> String
-envErrorMessage = case _ of
-  EnvLookupError var -> "The required variable \"" <> var <>
-    "\" was not specified."
-  EnvParseError var -> "The variable \"" <> var <>
-    "\" was formatted incorrectly."
-  EnvErrors errors -> joinWith "\n" $ map envErrorMessage errors
+printEnvError :: List EnvError -> String
+printEnvError =
+  case _ of
+    (x : Nil) ->
+      msg x
+    xxs ->
+      "Multiple environment errors: " <> foldMap (\x -> "\n* " <> msg x) xxs
+  where
+    msg (EnvLookupError var) =
+      "The required variable \"" <> var <> "\" was not specified."
+    msg (EnvParseError var) =
+      "The variable \"" <> var <> "\" was formatted incorrectly."
 
 -- | Parses a `String` value to the specified type.
 class ParseValue ty where
@@ -116,7 +114,7 @@ else instance readValueRequired :: ParseValue a => ReadValue a where
 -- | Transforms a row of environment variable specifications to a record.
 class ReadEnv (e :: Row Type) (r :: Row Type) where
   readEnv
-    :: forall proxy. proxy e -> Object String -> Either EnvError (Record r)
+    :: forall proxy. proxy e -> Object String -> Either (List EnvError) (Record r)
 
 instance readEnvImpl ::
   ( RowToList e el
@@ -137,7 +135,7 @@ class
      . proxy el
     -> proxy rl
     -> Object String
-    -> Either EnvError (Record r)
+    -> Either (List EnvError) (Record r)
 
 instance readEnvFieldsCons ::
   ( IsSymbol name
@@ -155,8 +153,8 @@ instance readEnvFieldsCons ::
     value = readValue (reflectSymbol nameP) env
     tail = readEnvFields (Proxy :: _ elt) (Proxy :: _ rlt) env
 
-    insert (Left valueErr) (Left tailErrs) = Left $ valueErr <> tailErrs
-    insert valE tailE = Record.insert nameP <$> valE <*> tailE
+    insert (Left valueErr) (Left tailErrs) = Left $ valueErr : tailErrs
+    insert valE tailE = Record.insert nameP <$> lmap pure valE <*> tailE
 
 instance readEnvFieldsNil ::
   TypeEquals {} (Record row) =>
