@@ -1,6 +1,7 @@
 module Example.Reader where
 
 import Prelude
+
 import Control.Monad.Reader (Reader, asks, runReader)
 import Data.Either (Either(..))
 import Data.List.Lazy (replicateM)
@@ -8,24 +9,26 @@ import Data.Maybe (Maybe, fromMaybe)
 import Effect (Effect)
 import Effect.Console (log)
 import Node.Process (getEnv)
-import Type.Data.Row (RProxy(..))
-import TypedEnv (type (<:), envErrorMessage)
+import Type.Proxy (Proxy(..))
+import TypedEnv (envErrorMessage)
 import TypedEnv (fromEnv) as TypedEnv
 
 type Config =
-  ( username :: Maybe String <: "USERNAME"
-  , repeat   :: Maybe Int    <: "REPEAT"
+  ( "USERNAME" :: Maybe String
+  , "REPEAT" :: Maybe Int
   )
 
 main :: Effect Unit
 main = do
-  env <- TypedEnv.fromEnv (RProxy :: RProxy Config) <$> getEnv
+  env <- TypedEnv.fromEnv (Proxy :: Proxy Config) <$> getEnv
   case env of
     Left error ->
       log $ "ERROR: " <> envErrorMessage error
-    Right config@{ repeat } -> do
+    Right config@{ "REPEAT": repeat } -> do
       _ <- replicateM (1 + fromMaybe 0 repeat) $ log $ runReader greeting config
       pure unit
 
-greeting :: forall r. Reader { username :: Maybe String | r } String
-greeting = asks _.username >>= \username -> pure $ "Hello, " <> fromMaybe "Sailor" username <> "!"
+greeting :: forall r. Reader { "USERNAME" :: Maybe String | r } String
+greeting = asks _."USERNAME" >>= \username -> pure $ "Hello, "
+  <> fromMaybe "Sailor" username
+  <> "!"

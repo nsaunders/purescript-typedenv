@@ -1,26 +1,27 @@
 module Example.Basic where
 
 import Prelude
+
 import Data.Either (Either(..))
 import Data.List.Lazy (replicateM)
 import Effect (Effect)
 import Effect.Console (log)
 import Node.Process (getEnv)
-import Type.Data.Row (RProxy(..))
-import TypedEnv (type (<:), envErrorMessage)
+import Type.Proxy (Proxy(..))
+import TypedEnv (envErrorMessage)
 import TypedEnv (fromEnv) as TypedEnv
 
 type Environment =
-  ( greeting :: String <: "GREETING"
-  , count    :: Int    <: "COUNT"
+  ( "GREETING" :: String
+  , "COUNT" :: Int
   )
 
 main :: Effect Unit
 main = do
-  env <- TypedEnv.fromEnv (RProxy :: RProxy Environment) <$> getEnv
+  env <- TypedEnv.fromEnv (Proxy :: Proxy Environment) <$> getEnv
   case env of
     Left error ->
       log $ "ERROR: " <> envErrorMessage error
-    Right { greeting, count } -> do
+    Right { "GREETING": greeting, "COUNT": count } -> do
       _ <- replicateM count (log greeting)
       pure unit

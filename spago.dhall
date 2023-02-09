@@ -1,26 +1,18 @@
-{-
-Welcome to a Spago project!
-You can edit this file as you like.
--}
-{ name =
-    "my-project"
+{ name = "typedenv"
+, license = "MIT"
+, repository = "https://github.com/nsaunders/purescript-typedenv"
 , dependencies =
-    [ "console"
-    , "effect"
-    , "foreign-object"
-    , "generics-rep"
-    , "integers"
-    , "node-process"
-    , "numbers"
-    , "psci-support"
-    , "record"
-    , "spec"
-    , "strings"
-    , "transformers"
-    , "typelevel-prelude"
-    ]
-, packages =
-    ./packages.dhall
-, sources =
-    [ "src/**/*.purs", "test/**/*.purs" ]
+  [ "either"
+  , "foreign-object"
+  , "integers"
+  , "maybe"
+  , "numbers"
+  , "prelude"
+  , "record"
+  , "strings"
+  , "type-equality"
+  , "typelevel-prelude"
+  ]
+, packages = ./packages.dhall
+, sources = [ "src/**/*.purs" ]
 }
