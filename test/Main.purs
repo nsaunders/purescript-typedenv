@@ -42,6 +42,13 @@ main = launchAff_ $ runSpec [ consoleReporter ] $
         actual = fromEnv (Proxy :: _ ("DEBUG" :: Boolean)) env
       actual `shouldEqual` expected
 
+    it "indicates when parsing multiple values has failed" do
+      let
+        env = FO.fromHomogeneous { "A": "err"}
+        expected = Left (EnvErrors [EnvParseError "A", EnvLookupError "B"])
+        actual = fromEnv (RProxy :: RProxy (a :: Int <: "A", b :: String <: "B")) env
+      actual `shouldEqual` expected
+
     it "parses boolean values" do
       traverse_
         ( \({ given, expected }) ->

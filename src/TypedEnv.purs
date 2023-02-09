@@ -16,13 +16,15 @@ module TypedEnv
 
 import Prelude
 
-import Data.Either (Either, note)
+import Data.Either (Either(..), note)
 import Data.Generic.Rep (class Generic)
 import Data.Int (fromString) as Int
 import Data.Maybe (Maybe(..))
 import Data.Number (fromString) as Number
 import Data.Show.Generic (genericShow)
 import Data.String.CodeUnits (uncons) as String
+import Data.String.Common (toLower, joinWith)
+import Data.Symbol (class IsSymbol, reflectSymbol)
 import Data.String.Common (toLower)
 import Data.Symbol (class IsSymbol, reflectSymbol)
 import Foreign.Object (Object, lookup)
@@ -43,22 +45,28 @@ fromEnv
 fromEnv = readEnv
 
 -- | An error that can occur while reading an environment variable
-data EnvError = EnvLookupError String | EnvParseError String
+data EnvError = EnvLookupError String | EnvParseError String | EnvErrors (Array EnvError)
 
 derive instance eqEnvError :: Eq EnvError
 
 derive instance genericEnvError :: Generic EnvError _
 
+instance semigroupEnvError :: Semigroup EnvError where
+  append (EnvErrors aErrors) (EnvErrors bErrors) = EnvErrors $ aErrors <> bErrors
+  append (EnvErrors errors) err = EnvErrors $ errors <> [err]
+  append err (EnvErrors errors) = EnvErrors $ [err] <> errors
+  append errA errB = EnvErrors [errA, errB]
+
 instance showEnvError :: Show EnvError where
-  show = genericShow
+  show (EnvErrors errors) = joinWith "\n" $ map genericShow errors
+  show err = genericShow err
 
 -- | Gets the error message for a given `EnvError` value.
 envErrorMessage :: EnvError -> String
 envErrorMessage = case _ of
-  EnvLookupError var -> "The required variable \"" <> var <>
-    "\" was not specified."
-  EnvParseError var -> "The variable \"" <> var <>
-    "\" was formatted incorrectly."
+  EnvLookupError var -> "The required variable \"" <> var <> "\" was not specified."
+  EnvParseError var  -> "The variable \"" <> var <> "\" was formatted incorrectly."
+  EnvErrors errors -> joinWith "\n" $ map envErrorMessage errors
 
 -- | Parses a `String` value to the specified type.
 class ParseValue ty where
@@ -135,16 +143,16 @@ instance readEnvFieldsCons ::
   , Row.Lacks name rt
   , Row.Cons name ty rt r
   , ReadValue ty
-  ) =>
-  ReadEnvFields (Cons name ty elt) (Cons name ty rlt) r where
-  readEnvFields _ _ env = Record.insert nameP <$> value <*> tail
-    where
-    nameP = Proxy :: _ name
-    name = reflectSymbol (Proxy :: _ name)
-    value = readValue name env
-    tail = readEnvFields (Proxy :: _ elt) (Proxy :: _ rlt) env
+  ) => ReadEnvFields (Cons name (Variable varName ty) elt) (Cons name ty rlt) r where
+    readEnvFields _ _ env = insert value tail
+      where
+      nameP = Proxy :: _ name
+      varName = reflectSymbol (Proxy :: _ varName)
+      value = readValue varName env
+      tail = readEnvFields (Proxy :: _ elt) (Proxy :: _ rlt) env
 
-instance readEnvFieldsNil ::
-  TypeEquals {} (Record row) =>
-  ReadEnvFields Nil Nil row where
+      insert (Left valueErr) (Left tailErrs) = Left $ valueErr <> tailErrs
+      insert valE tailE = Record.insert nameP <$> valE <*> tailE
+
+instance readEnvFieldsNil :: TypeEquals {} (Record row) => ReadEnvFields Nil Nil row where
   readEnvFields _ _ _ = pure $ to {}
