@@ -9,7 +9,7 @@ import Effect (Effect)
 import Effect.Console (log)
 import Node.Process (getEnv)
 import Type.Proxy (Proxy(..))
-import TypedEnv (class ParseValue, type (<:), envErrorMessage)
+import TypedEnv (class ParseValue, envErrorMessage)
 import TypedEnv (fromEnv) as TypedEnv
 
 newtype Port = Port Int
@@ -21,8 +21,8 @@ instance parseValuePort :: ParseValue Port where
   parseValue = map Port <<< find (_ <= 65535) <<< Int.fromString
 
 type Settings =
-  ( host :: String <: "HOST"
-  , port :: Port <: "PORT"
+  ( "HOST" :: String
+  , "PORT" :: Port
   )
 
 main :: Effect Unit
@@ -31,6 +31,6 @@ main = do
   case env of
     Left error ->
       log $ "ERROR: " <> envErrorMessage error
-    Right { host, port } -> do
+    Right { "HOST": host, "PORT": port } -> do
       log $ "Connected to " <> host <> ":" <> show port
       pure unit

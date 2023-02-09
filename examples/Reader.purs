@@ -10,12 +10,12 @@ import Effect (Effect)
 import Effect.Console (log)
 import Node.Process (getEnv)
 import Type.Proxy (Proxy(..))
-import TypedEnv (type (<:), envErrorMessage)
+import TypedEnv (envErrorMessage)
 import TypedEnv (fromEnv) as TypedEnv
 
 type Config =
-  ( username :: Maybe String <: "USERNAME"
-  , repeat :: Maybe Int <: "REPEAT"
+  ( "USERNAME" :: Maybe String
+  , "REPEAT" :: Maybe Int
   )
 
 main :: Effect Unit
@@ -24,11 +24,11 @@ main = do
   case env of
     Left error ->
       log $ "ERROR: " <> envErrorMessage error
-    Right config@{ repeat } -> do
+    Right config@{ "REPEAT": repeat } -> do
       _ <- replicateM (1 + fromMaybe 0 repeat) $ log $ runReader greeting config
       pure unit
 
-greeting :: forall r. Reader { username :: Maybe String | r } String
-greeting = asks _.username >>= \username -> pure $ "Hello, "
+greeting :: forall r. Reader { "USERNAME" :: Maybe String | r } String
+greeting = asks _."USERNAME" >>= \username -> pure $ "Hello, "
   <> fromMaybe "Sailor" username
   <> "!"

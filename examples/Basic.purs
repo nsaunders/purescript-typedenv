@@ -8,12 +8,12 @@ import Effect (Effect)
 import Effect.Console (log)
 import Node.Process (getEnv)
 import Type.Proxy (Proxy(..))
-import TypedEnv (type (<:), envErrorMessage)
+import TypedEnv (envErrorMessage)
 import TypedEnv (fromEnv) as TypedEnv
 
 type Environment =
-  ( greeting :: String <: "GREETING"
-  , count :: Int <: "COUNT"
+  ( "GREETING" :: String
+  , "COUNT" :: Int
   )
 
 main :: Effect Unit
@@ -22,6 +22,6 @@ main = do
   case env of
     Left error ->
       log $ "ERROR: " <> envErrorMessage error
-    Right { greeting, count } -> do
+    Right { "GREETING": greeting, "COUNT": count } -> do
       _ <- replicateM count (log greeting)
       pure unit
