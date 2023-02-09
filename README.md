@@ -12,8 +12,6 @@ safely throughout the rest of the program.
 One of the more popular solutions would be something like this applicative-style lookup/validation/parsing into a record:
 
 ```purescript
-import Data.Either (Either, note)
-
 type Config =
   { greeting :: String
   , count    :: Int
@@ -23,7 +21,10 @@ readConfig :: Object String -> Either String Config
 readConfig env =
   (\greeting count -> { greeting, count })
   <$> value "GREETING"
-  <*> (value "COUNT" >>= Int.fromString >>> note "Invalid COUNT")
+  <*> ( value "COUNT"
+        >>= Int.fromString
+        >>> Either.note "Invalid COUNT"
+      )
   where
     value name =
       note ("Missing variable " <> name) $ lookup name env
