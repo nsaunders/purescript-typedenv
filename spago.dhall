@@ -2,9 +2,11 @@
 , license = "MIT"
 , repository = "https://github.com/nsaunders/purescript-typedenv"
 , dependencies =
-  [ "either"
+  [ "bifunctors"
+  , "either"
   , "foreign-object"
   , "integers"
+  , "lists"
   , "maybe"
   , "numbers"
   , "prelude"

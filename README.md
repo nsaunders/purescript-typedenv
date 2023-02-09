@@ -7,7 +7,7 @@ The [`purescript-node-process` environment API](https://pursuit.purescript.org/p
 provides environment variables in the form of an
 [`Object String`](https://pursuit.purescript.org/packages/purescript-foreign-object/2.0.2/docs/Foreign.Object#t:Object)
 (a string map), but it is left up to us to validate and to parse the values into some configuration model that can be used
-throughout the rest of the program.
+safely throughout the rest of the program.
 
 One of the more popular solutions would be something like this applicative-style lookup/validation/parsing into a record:
 
@@ -31,8 +31,8 @@ However, this is a bit unsatisfying because the explicit lookups, parsing logic,
 verbose and might start to look like a lot of boilerplate as the `Config` model is extended with additional fields.
 The value-level logic creates additional touchpoints when fields are added or removed, or their types change.
 
-Instead, this library uses a type-directed approach, starting with renaming the `Config` fields according to the
-environment variable names from which they are sourced:
+Instead, this library uses a type-directed approach, which starts with renaming the `Config` fields according to the
+environment variable names from which their values are sourced:
 
 ```purescript
 type Config =
@@ -48,10 +48,14 @@ lookups, parsing, or error handling:
 readConfig :: Object String -> Either String Config
 readConfig env =
   bimap
-    envErrorMessage
+    printEnvError
     (\r -> { greeting: r."GREETING", count: r."COUNT" })
     $ TypedEnv.fromEnv (Proxy :: _ Config) env
 ```
+
+> **Note**
+> An additional benefit not demonstrated here is that the `TypedEnv.fromEnv` function accumulates a list of
+> errors, whereas the former example can only present one error at a time.
 
 For more, see the [examples](#examples) section below.
 
