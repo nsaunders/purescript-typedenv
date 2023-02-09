@@ -20,7 +20,7 @@ import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
 import Data.Generic.Rep (class Generic)
 import Data.Int (fromString) as Int
-import Data.List (List(..), (:), foldMap)
+import Data.List (List(..), foldMap, (:))
 import Data.Maybe (Maybe(..))
 import Data.Number (fromString) as Number
 import Data.Show.Generic (genericShow)
@@ -65,10 +65,10 @@ printEnvError =
     xxs ->
       "Multiple environment errors: " <> foldMap (\x -> "\n* " <> msg x) xxs
   where
-    msg (EnvLookupError var) =
-      "The required variable \"" <> var <> "\" was not specified."
-    msg (EnvParseError var) =
-      "The variable \"" <> var <> "\" was formatted incorrectly."
+  msg (EnvLookupError var) =
+    "The required variable \"" <> var <> "\" was not specified."
+  msg (EnvParseError var) =
+    "The variable \"" <> var <> "\" was formatted incorrectly."
 
 -- | Parses a `String` value to the specified type.
 class ParseValue ty where
@@ -114,7 +114,10 @@ else instance readValueRequired :: ParseValue a => ReadValue a where
 -- | Transforms a row of environment variable specifications to a record.
 class ReadEnv (e :: Row Type) (r :: Row Type) where
   readEnv
-    :: forall proxy. proxy e -> Object String -> Either (List EnvError) (Record r)
+    :: forall proxy
+     . proxy e
+    -> Object String
+    -> Either (List EnvError) (Record r)
 
 instance readEnvImpl ::
   ( RowToList e el

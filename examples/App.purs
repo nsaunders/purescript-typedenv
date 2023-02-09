@@ -11,8 +11,8 @@ import Effect.Console (log)
 import Node.Process (getEnv)
 import Type.Equality (class TypeEquals, from)
 import Type.Proxy (Proxy(..))
-import TypedEnv (printEnvError)
 import TypedEnv (fromEnv) as TypedEnv
+import TypedEnv (printEnvError)
 
 type Config =
   ( "ALERT_EMAIL" :: String
