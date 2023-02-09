@@ -3,14 +3,13 @@
 
 <img src="https://raw.githubusercontent.com/nsaunders/purescript-typedenv/master/img/tile.png" alt="purescript-typedenv" align="right" />
 
-The [`purescript-node-process` environment API](https://pursuit.purescript.org/packages/purescript-node-process/7.0.0/docs/Node.Process#v:getEnv)
+The [`purescript-node-process` environment API](https://pursuit.purescript.org/packages/purescript-node-process/10.0.0/docs/Node.Process#v:getEnv)
 provides environment variables in the form of an
 [`Object String`](https://pursuit.purescript.org/packages/purescript-foreign-object/2.0.2/docs/Foreign.Object#t:Object)
 (a string map), but it is left up to us to validate and to parse the values into some configuration model that can be used
 throughout the rest of the program.
 
-Perhaps one of the more popular solutions would be something like this applicative-style lookup/validation/parsing
-into a record:
+One of the more popular solutions would be something like this applicative-style lookup/validation/parsing into a record:
 
 ```purescript
 type Config =
@@ -19,7 +18,8 @@ type Config =
   }
 
 readConfig :: Object String -> Either String Config
-readConfig env = { greeting: _, count: _ }
+readConfig env =
+  (\greeting count -> { greeting, count })
   <$> value "GREETING"
   <*> (value "COUNT" >>= Int.fromString >>> note "Invalid COUNT")
   where
@@ -27,15 +27,12 @@ readConfig env = { greeting: _, count: _ }
       note ("Missing variable " <> name) $ lookup name env
 ```
 
-However, this is a bit unsatisfying. For one thing, the explicit lookups, parsing logic, and error handling are somewhat
-verbose and might start to look like a lot of boilerplate as the `Config` model is extended with additional fields. Second,
-multiple non-consecutive lines of code would need to be touched in order to add a new setting. Third, it may not be
-immediately clear at a glance what environment variables are required, their types, or their relationships to the `Config`
-model (i.e. which variable corresponds to each field).
+However, this is a bit unsatisfying because the explicit lookups, parsing logic, and error handling are somewhat
+verbose and might start to look like a lot of boilerplate as the `Config` model is extended with additional fields.
+The value-level logic creates additional touchpoints when fields are added or removed, or their types change.
 
-This library attempts to address these issues by extending a configuration model like the above with the small amount of
-additional information required to read it from the environment⁠—that is, the name of the environment variable corresponding
-to each field. For example:
+Instead, this library uses a type-directed approach, starting with renaming the `Config` fields according to the
+environment variable names from which they are sourced:
 
 ```purescript
 type Config =
@@ -44,9 +41,11 @@ type Config =
   )
 ```
 
-Its `fromEnv` function can now read the configuration from the environment with relative ease:
+The `fromEnv` function can now convert the environment `Object String` to a typed record with no need for explicit
+lookups, parsing, or error handling:
 
 ```purescript
+readConfig :: Object String -> Either String Config
 readConfig env =
   bimap
     envErrorMessage
