@@ -2,12 +2,8 @@
 
 module TypedEnv
   ( fromEnv
-  , Variable
-  , VariableFlipped
-  , type (<:)
   , EnvError(..)
   , envErrorMessage
-  , Resolved
   , class ParseValue
   , parseValue
   , class ReadValue
@@ -46,15 +42,6 @@ fromEnv
   -> Either EnvError (Record r)
 fromEnv = readEnv
 
--- | Specifies the name and type of an environment variable.
-data Variable (name :: Symbol) (ty :: Type)
-
--- | An alias for `Variable` with the parameters reversed
-type VariableFlipped ty name = Variable name ty
-
--- | An alias for `VariableFlipped`
-infixr 5 type VariableFlipped as <:
-
 -- | An error that can occur while reading an environment variable
 data EnvError = EnvLookupError String | EnvParseError String
 
@@ -72,10 +59,6 @@ envErrorMessage = case _ of
     "\" was not specified."
   EnvParseError var -> "The variable \"" <> var <>
     "\" was formatted incorrectly."
-
--- | Useful for a type alias representing a resolved environment
-type Resolved :: forall k. Symbol -> k -> k
-type Resolved (name :: Symbol) ty = ty
 
 -- | Parses a `String` value to the specified type.
 class ParseValue ty where
@@ -146,20 +129,20 @@ class
 
 instance readEnvFieldsCons ::
   ( IsSymbol name
-  , IsSymbol varName
+  , IsSymbol name
   , ListToRow rlt rt
   , ReadEnvFields elt rlt rt
   , Row.Lacks name rt
   , Row.Cons name ty rt r
   , ReadValue ty
   ) =>
-  ReadEnvFields (Cons name (Variable varName ty) elt) (Cons name ty rlt) r where
+  ReadEnvFields (Cons name ty elt) (Cons name ty rlt) r where
   readEnvFields _ _ env = Record.insert nameP <$> value <*> tail
     where
-    nameP = Proxy :: Proxy name
-    varName = reflectSymbol (Proxy :: Proxy varName)
-    value = readValue varName env
-    tail = readEnvFields (Proxy :: Proxy elt) (Proxy :: Proxy rlt) env
+    nameP = Proxy :: _ name
+    name = reflectSymbol (Proxy :: _ name)
+    value = readValue name env
+    tail = readEnvFields (Proxy :: _ elt) (Proxy :: _ rlt) env
 
 instance readEnvFieldsNil ::
   TypeEquals {} (Record row) =>
