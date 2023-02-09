@@ -12,6 +12,8 @@ safely throughout the rest of the program.
 One of the more popular solutions would be something like this applicative-style lookup/validation/parsing into a record:
 
 ```purescript
+import Data.Either (Either, note)
+
 type Config =
   { greeting :: String
   , count    :: Int
