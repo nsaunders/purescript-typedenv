@@ -29,7 +29,6 @@ import Prim.Row (class Cons, class Lacks) as Row
 import Prim.RowList (class RowToList, Cons, Nil, RowList)
 import Record.Builder (Builder) as Record
 import Record.Builder as RB
-import Type.Equality (class TypeEquals)
 import Type.Proxy (Proxy(..))
 import Type.RowList (class ListToRow)
 
@@ -142,6 +141,5 @@ instance readEnvCons ::
     insert (Left err) (Left errs) = Left $ err : errs
 
 instance readEnvNil ::
-  TypeEquals {} (Record rout) =>
   ReadEnv Nil rout rout where
   readEnv _ _ _ = pure $ RB.union {}
