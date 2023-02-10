@@ -9,5 +9,6 @@ in conf // {
     , "lists"
     , "node-process"
     , "transformers"
+    , "type-equality"
     ]
 }
