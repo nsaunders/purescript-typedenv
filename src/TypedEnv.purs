@@ -41,7 +41,7 @@ fromEnv
   => Proxy r
   -> Object String
   -> Either (List EnvError) (Record r)
-fromEnv = readEnv (Proxy :: _ rl)
+fromEnv _ env = readEnv (Proxy :: _ rl) env
 
 -- | An error that can occur while reading an environment variable
 data EnvError
@@ -111,10 +111,9 @@ else instance readValueRequired :: ParseValue a => ReadValue a where
       >>= (parseValue >>> note (EnvParseError name))
 
 -- | Transforms a list of environment variable specifications to a record.
-class ReadEnv (rl :: RowList Type) (r :: Row Type) where
+class ReadEnv (rl :: RowList Type) (r :: Row Type) | rl -> r where
   readEnv
     :: Proxy rl
-    -> Proxy r
     -> Object String
     -> Either (List EnvError) (Record r)
 
@@ -127,11 +126,11 @@ instance readEnvCons ::
   , Row.Cons name ty tailRow row
   ) =>
   ReadEnv (Cons name ty tail) row where
-  readEnv _ _ env = insert value tail
+  readEnv _ env = insert value tail
     where
     nameP = Proxy :: _ name
     value = readValue (reflectSymbol nameP) env :: Either EnvError ty
-    tail = readEnv (Proxy :: _ tail) (Proxy :: _ tailRow) env
+    tail = readEnv (Proxy :: _ tail) env
 
     insert (Left valueErr) (Left tailErrs) = Left $ valueErr : tailErrs
     insert valE tailE = Record.insert nameP <$> lmap pure valE <*> tailE
@@ -139,4 +138,4 @@ instance readEnvCons ::
 instance readEnvNil ::
   TypeEquals {} (Record row) =>
   ReadEnv Nil row where
-  readEnv _ _ _ = pure $ to {}
+  readEnv _ _ = pure $ to {}
