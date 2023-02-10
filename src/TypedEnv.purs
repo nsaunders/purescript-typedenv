@@ -37,7 +37,7 @@ fromEnv
   :: forall r rl
    . RowToList r rl
   => ReadEnv rl () r
-  => Proxy r
+  => Proxy (Record r)
   -> Object String
   -> Either (List EnvError) (Record r)
 fromEnv _ env = RB.buildFromScratch <$> readEnv (Proxy :: _ rl) (Proxy :: _ ())

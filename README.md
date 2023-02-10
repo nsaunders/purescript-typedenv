@@ -39,9 +39,9 @@ environment variable names from which their values are sourced:
 
 ```purescript
 type Config =
-  ( "GREETING" :: String
+  { "GREETING" :: String
   , "COUNT"    :: Int
-  )
+  }
 ```
 
 The `fromEnv` function can now convert the environment `Object String` to a typed record with no need for explicit

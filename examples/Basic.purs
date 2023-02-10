@@ -12,9 +12,9 @@ import TypedEnv (fromEnv) as TypedEnv
 import TypedEnv (printEnvError)
 
 type Environment =
-  ( "GREETING" :: String
+  { "GREETING" :: String
   , "COUNT" :: Int
-  )
+  }
 
 main :: Effect Unit
 main = do

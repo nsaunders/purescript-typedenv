@@ -21,9 +21,9 @@ instance parseValuePort :: ParseValue Port where
   parseValue = map Port <<< find (_ <= 65535) <<< Int.fromString
 
 type Settings =
-  ( "HOST" :: String
+  { "HOST" :: String
   , "PORT" :: Port
-  )
+  }
 
 main :: Effect Unit
 main = do
