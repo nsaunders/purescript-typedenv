@@ -11,7 +11,7 @@ import Type.Proxy (Proxy(..))
 import TypedEnv (fromEnv) as TypedEnv
 import TypedEnv (printEnvError)
 
-type Settings = ("USERNAME" :: Maybe String)
+type Settings = { "USERNAME" :: Maybe String }
 
 main :: Effect Unit
 main = do

@@ -14,9 +14,9 @@ import TypedEnv (fromEnv) as TypedEnv
 import TypedEnv (printEnvError)
 
 type Config =
-  ( "USERNAME" :: Maybe String
+  { "USERNAME" :: Maybe String
   , "REPEAT" :: Maybe Int
-  )
+  }
 
 main :: Effect Unit
 main = do

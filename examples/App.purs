@@ -15,13 +15,13 @@ import TypedEnv (fromEnv) as TypedEnv
 import TypedEnv (printEnvError)
 
 type Config =
-  ( "ALERT_EMAIL" :: String
+  { "ALERT_EMAIL" :: String
   , "ALERT_SUBJECT" :: String
-  )
+  }
 
-newtype AppM a = AppM (ReaderT { | Config } Effect a)
+newtype AppM a = AppM (ReaderT Config Effect a)
 
-runAppM :: { | Config } -> AppM ~> Effect
+runAppM :: Config -> AppM ~> Effect
 runAppM env (AppM m) = runReaderT m env
 
 derive newtype instance functorAppM :: Functor AppM
@@ -31,7 +31,7 @@ derive newtype instance bindAppM :: Bind AppM
 derive newtype instance monadAppM :: Monad AppM
 derive newtype instance monadEffectAppM :: MonadEffect AppM
 
-instance monadAskAppM :: TypeEquals e { | Config } => MonadAsk e AppM where
+instance monadAskAppM :: TypeEquals e Config => MonadAsk e AppM where
   ask = AppM $ asks from
 
 main :: Effect Unit
