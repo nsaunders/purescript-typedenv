@@ -49,11 +49,7 @@ no need for explicit lookups, parsing, or error handling:
 
 ```purescript
 parseConfig :: Object String -> Either String Config
-parseConfig env =
-  bimap
-    printEnvError
-    (\r -> { greeting: r."GREETING", count: r."COUNT" })
-    $ TypedEnv.fromEnv (Proxy :: _ Config) env
+parseConfig = Either.lmap printEnvError <<< TypedEnv.fromEnv (Proxy :: _ Config)
 ```
 
 > **Note**
