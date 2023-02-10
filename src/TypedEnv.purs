@@ -14,7 +14,6 @@ module TypedEnv
 
 import Prelude
 
-import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
 import Data.Generic.Rep (class Generic)
 import Data.Int (fromString) as Int
@@ -28,8 +27,9 @@ import Data.Symbol (class IsSymbol, reflectSymbol)
 import Foreign.Object (Object, lookup)
 import Prim.Row (class Cons, class Lacks) as Row
 import Prim.RowList (class RowToList, Cons, Nil, RowList)
-import Record (insert) as Record
-import Type.Equality (class TypeEquals, to)
+import Record.Builder (Builder) as Record
+import Record.Builder as RB
+import Type.Equality (class TypeEquals)
 import Type.Proxy (Proxy(..))
 import Type.RowList (class ListToRow)
 
@@ -37,11 +37,12 @@ import Type.RowList (class ListToRow)
 fromEnv
   :: forall r rl
    . RowToList r rl
-  => ReadEnv rl r
+  => ReadEnv rl () r
   => Proxy r
   -> Object String
   -> Either (List EnvError) (Record r)
-fromEnv _ env = readEnv (Proxy :: _ rl) env
+fromEnv _ env = RB.buildFromScratch <$> readEnv (Proxy :: _ rl) (Proxy :: _ ())
+  env
 
 -- | An error that can occur while reading an environment variable
 data EnvError
@@ -111,31 +112,36 @@ else instance readValueRequired :: ParseValue a => ReadValue a where
       >>= (parseValue >>> note (EnvParseError name))
 
 -- | Transforms a list of environment variable specifications to a record.
-class ReadEnv (rl :: RowList Type) (r :: Row Type) | rl -> r where
+class
+  ReadEnv (rl :: RowList Type) (rin :: Row Type) (rout :: Row Type)
+  | rl -> rout where
   readEnv
     :: Proxy rl
+    -> Proxy rin
     -> Object String
-    -> Either (List EnvError) (Record r)
+    -> Either (List EnvError) (Record.Builder (Record rin) (Record rout))
 
 instance readEnvCons ::
   ( IsSymbol name
   , ReadValue ty
-  , ListToRow tail tailRow
-  , ReadEnv tail tailRow
-  , Row.Lacks name tailRow
-  , Row.Cons name ty tailRow row
+  , ListToRow tail tailRout
+  , ReadEnv tail rin tailRout
+  , Row.Cons name ty tailRout rout
+  , Row.Lacks name tailRout
   ) =>
-  ReadEnv (Cons name ty tail) row where
-  readEnv _ env = insert value tail
+  ReadEnv (Cons name ty tail) rin rout where
+  readEnv _ _ env = insert value tail
     where
     nameP = Proxy :: _ name
     value = readValue (reflectSymbol nameP) env :: Either EnvError ty
-    tail = readEnv (Proxy :: _ tail) env
+    tail = readEnv (Proxy :: _ tail) (Proxy :: _ rin) env
 
-    insert (Left valueErr) (Left tailErrs) = Left $ valueErr : tailErrs
-    insert valE tailE = Record.insert nameP <$> lmap pure valE <*> tailE
+    insert (Right val) (Right builder) = Right $ RB.insert nameP val <<< builder
+    insert (Right _) (Left errs) = Left errs
+    insert (Left err) (Right _) = Left $ pure err
+    insert (Left err) (Left errs) = Left $ err : errs
 
 instance readEnvNil ::
-  TypeEquals {} (Record row) =>
-  ReadEnv Nil row where
-  readEnv _ _ = pure $ to {}
+  TypeEquals {} (Record rout) =>
+  ReadEnv Nil rout rout where
+  readEnv _ _ _ = pure $ RB.union {}
