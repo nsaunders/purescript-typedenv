@@ -17,12 +17,12 @@
         "purescript-either": "^v6.1.0",
         "purescript-foreign-object": "^v4.0.0",
         "purescript-integers": "^v6.0.0",
+        "purescript-lists": "^v7.0.0",
         "purescript-maybe": "^v6.0.0",
         "purescript-numbers": "^v9.0.0",
         "purescript-prelude": "^v6.0.0",
         "purescript-record": "^v4.0.0",
         "purescript-strings": "^v6.0.0",
-        "purescript-type-equality": "^v4.0.1",
         "purescript-typelevel-prelude": "^v7.0.0"
     }
 }
