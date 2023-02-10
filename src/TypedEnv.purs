@@ -37,9 +37,9 @@ import Type.RowList (class ListToRow)
 
 -- | Gets a record of environment variables from a Node environment.
 fromEnv
-  :: forall e r proxy
+  :: forall e r
    . ReadEnv e r
-  => proxy e
+  => Proxy e
   -> Object String
   -> Either (List EnvError) (Record r)
 fromEnv = readEnv
@@ -114,8 +114,7 @@ else instance readValueRequired :: ParseValue a => ReadValue a where
 -- | Transforms a row of environment variable specifications to a record.
 class ReadEnv (e :: Row Type) (r :: Row Type) where
   readEnv
-    :: forall proxy
-     . proxy e
+    :: Proxy e
     -> Object String
     -> Either (List EnvError) (Record r)
 
@@ -127,16 +126,15 @@ instance readEnvImpl ::
   , ListToRow el l
   ) =>
   ReadEnv e r where
-  readEnv _ = readEnvFields (Proxy :: Proxy el) (Proxy :: Proxy rl)
+  readEnv _ = readEnvFields (Proxy :: _ el) (Proxy :: _ rl)
 
 -- | Transforms a list of environment variable specifications to a record.
 class
   ReadEnvFields (el :: RowList Type) (rl :: RowList Type) (r :: Row Type)
   | el -> rl where
   readEnvFields
-    :: forall proxy
-     . proxy el
-    -> proxy rl
+    :: Proxy el
+    -> Proxy rl
     -> Object String
     -> Either (List EnvError) (Record r)
 
