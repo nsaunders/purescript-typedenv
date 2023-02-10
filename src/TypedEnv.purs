@@ -10,8 +10,6 @@ module TypedEnv
   , readValue
   , class ReadEnv
   , readEnv
-  , class ReadEnvFields
-  , readEnvFields
   ) where
 
 import Prelude
@@ -37,12 +35,13 @@ import Type.RowList (class ListToRow)
 
 -- | Gets a record of environment variables from a Node environment.
 fromEnv
-  :: forall e r
-   . ReadEnv e r
-  => Proxy e
+  :: forall r rl
+   . RowToList r rl
+  => ReadEnv rl r
+  => Proxy r
   -> Object String
   -> Either (List EnvError) (Record r)
-fromEnv = readEnv
+fromEnv = readEnv (Proxy :: _ rl)
 
 -- | An error that can occur while reading an environment variable
 data EnvError
@@ -111,53 +110,33 @@ else instance readValueRequired :: ParseValue a => ReadValue a where
     (note (EnvLookupError name) $ lookup name env)
       >>= (parseValue >>> note (EnvParseError name))
 
--- | Transforms a row of environment variable specifications to a record.
-class ReadEnv (e :: Row Type) (r :: Row Type) where
-  readEnv
-    :: Proxy e
-    -> Object String
-    -> Either (List EnvError) (Record r)
-
-instance readEnvImpl ::
-  ( RowToList e el
-  , RowToList r rl
-  , ReadEnvFields el rl r
-  , ListToRow rl r
-  , ListToRow el l
-  ) =>
-  ReadEnv e r where
-  readEnv _ = readEnvFields (Proxy :: _ el) (Proxy :: _ rl)
-
 -- | Transforms a list of environment variable specifications to a record.
-class
-  ReadEnvFields (el :: RowList Type) (rl :: RowList Type) (r :: Row Type)
-  | el -> rl where
-  readEnvFields
-    :: Proxy el
-    -> Proxy rl
+class ReadEnv (rl :: RowList Type) (r :: Row Type) where
+  readEnv
+    :: Proxy rl
+    -> Proxy r
     -> Object String
     -> Either (List EnvError) (Record r)
 
-instance readEnvFieldsCons ::
+instance readEnvCons ::
   ( IsSymbol name
-  , IsSymbol name
-  , ListToRow rlt rt
-  , ReadEnvFields elt rlt rt
-  , Row.Lacks name rt
-  , Row.Cons name ty rt r
   , ReadValue ty
+  , ListToRow tail tailRow
+  , ReadEnv tail tailRow
+  , Row.Lacks name tailRow
+  , Row.Cons name ty tailRow row
   ) =>
-  ReadEnvFields (Cons name ty elt) (Cons name ty rlt) r where
-  readEnvFields _ _ env = insert value tail
+  ReadEnv (Cons name ty tail) row where
+  readEnv _ _ env = insert value tail
     where
     nameP = Proxy :: _ name
-    value = readValue (reflectSymbol nameP) env
-    tail = readEnvFields (Proxy :: _ elt) (Proxy :: _ rlt) env
+    value = readValue (reflectSymbol nameP) env :: Either EnvError ty
+    tail = readEnv (Proxy :: _ tail) (Proxy :: _ tailRow) env
 
     insert (Left valueErr) (Left tailErrs) = Left $ valueErr : tailErrs
     insert valE tailE = Record.insert nameP <$> lmap pure valE <*> tailE
 
-instance readEnvFieldsNil ::
+instance readEnvNil ::
   TypeEquals {} (Record row) =>
-  ReadEnvFields Nil Nil row where
-  readEnvFields _ _ _ = pure $ to {}
+  ReadEnv Nil row where
+  readEnv _ _ _ = pure $ to {}
