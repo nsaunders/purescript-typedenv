@@ -11,6 +11,7 @@ New features:
 Bugfixes:
 
 Other improvements:
+- Minor fix to field names in README example (#11 by @nsaunders)
 
 ## [2.0.0] - 2023-02-10
 
