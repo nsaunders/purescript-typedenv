@@ -17,8 +17,8 @@ type Config =
   , count    :: Int
   }
 
-readConfig :: Object String -> Either String Config
-readConfig env =
+parseConfig :: Object String -> Either String Config
+parseConfig env =
   (\greeting count -> { greeting, count })
   <$> value "GREETING"
   <*> ( value "COUNT"
@@ -44,12 +44,12 @@ type Config =
   }
 ```
 
-The `fromEnv` function can now convert the environment `Object String` to a typed record with no need for explicit
-lookups, parsing, or error handling:
+The `fromEnv` function now has enough information to convert the environment `Object String` to a typed record with
+no need for explicit lookups, parsing, or error handling:
 
 ```purescript
-readConfig :: Object String -> Either String Config
-readConfig env =
+parseConfig :: Object String -> Either String Config
+parseConfig env =
   bimap
     printEnvError
     (\r -> { greeting: r."GREETING", count: r."COUNT" })
@@ -60,21 +60,19 @@ readConfig env =
 > An additional benefit not demonstrated here is that the `TypedEnv.fromEnv` function accumulates a list of
 > errors, whereas the former example can only present one error at a time.
 
-For more, see the [examples](#examples) section below.
+### Examples
+
+To run one of the [examples](example), clone the repository and run the following command, replacing `<example-name>` with the name of the example.
+
+```bash
+spago -x example.dhall run -m Example.<example-name>
+```
 
 ### Installation
 
 via [spago](https://github.com/spacchetti/spago):
 ```bash
 spago install typedenv
-```
-
-### Examples
-
-To run one of the [examples](example), clone the repository and run the following command, replacing `<example-name>` with the name of the example.
-
-```bash
-spago run -p example/<example-name>.purs -m Example.<example-name>
 ```
 
 ### Similar ideas
