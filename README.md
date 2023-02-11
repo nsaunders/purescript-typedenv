@@ -1,7 +1,7 @@
 # purescript-typedenv [![Build](https://github.com/nsaunders/purescript-typedenv/workflows/CI/badge.svg)](https://github.com/nsaunders/purescript-typedenv/actions/workflows/ci.yml) [![Latest release](http://img.shields.io/github/release/nsaunders/purescript-typedenv.svg)](https://github.com/nsaunders/purescript-typedenv/releases) [![PureScript registry](https://img.shields.io/badge/dynamic/json?color=informational&label=registry&query=%24.typedenv.version&url=https%3A%2F%2Fraw.githubusercontent.com%2Fpurescript%2Fpackage-sets%2Fmaster%2Fpackages.json)](https://github.com/purescript/registry) [![purescript-typedenv on Pursuit](https://pursuit.purescript.org/packages/purescript-typedenv/badge)](https://pursuit.purescript.org/packages/purescript-typedenv)
 ## Type-directed environment parsing
 
-<img src="https://raw.githubusercontent.com/nsaunders/purescript-typedenv/master/img/tile.png" alt="purescript-typedenv" align="right" />
+<img src="https://raw.githubusercontent.com/nsaunders/purescript-typedenv/master/meta/img/tile.png" alt="purescript-typedenv" align="right" />
 
 The [`purescript-node-process` environment API](https://pursuit.purescript.org/packages/purescript-node-process/10.0.0/docs/Node.Process#v:getEnv)
 provides environment variables in the form of an
