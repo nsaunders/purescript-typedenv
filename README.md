@@ -58,7 +58,7 @@ parseConfig = Either.lmap printEnvError <<< TypedEnv.fromEnv (Proxy :: _ Config)
 
 ### Examples
 
-To run one of the [examples](example), clone the repository and run the following command, replacing `<example-name>` with the name of the example.
+To run one of the [examples](examples), clone the repository and run the following command, replacing `<example-name>` with the name of the example.
 
 ```bash
 spago -x example.dhall run -m Example.<example-name>
