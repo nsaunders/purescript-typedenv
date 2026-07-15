@@ -36,11 +36,11 @@ import Type.RowList (class ListToRow)
 fromEnv
   :: forall r rl
    . RowToList r rl
-  => ReadEnv rl () r
+  => ReadEnv rl r
   => Proxy (Record r)
   -> Object String
   -> Either (List EnvError) (Record r)
-fromEnv _ env = RB.buildFromScratch <$> readEnv (Proxy :: _ rl) (Proxy :: _ ())
+fromEnv _ env = RB.buildFromScratch <$> readEnv (Proxy :: _ rl)
   env
 
 -- | An error that can occur while reading an environment variable
@@ -112,28 +112,27 @@ else instance readValueRequired :: ParseValue a => ReadValue a where
 
 -- | Transforms a list of environment variable specifications to a record.
 class
-  ReadEnv (rl :: RowList Type) (rin :: Row Type) (rout :: Row Type)
+  ReadEnv (rl :: RowList Type) (rout :: Row Type)
   | rl -> rout where
   readEnv
     :: Proxy rl
-    -> Proxy rin
     -> Object String
-    -> Either (List EnvError) (Record.Builder (Record rin) (Record rout))
+    -> Either (List EnvError) (Record.Builder {} { | rout })
 
 instance readEnvCons ::
   ( IsSymbol name
   , ReadValue ty
   , ListToRow tail tailRout
-  , ReadEnv tail rin tailRout
+  , ReadEnv tail tailRout
   , Row.Cons name ty tailRout rout
   , Row.Lacks name tailRout
   ) =>
-  ReadEnv (Cons name ty tail) rin rout where
-  readEnv _ _ env = insert value tail
+  ReadEnv (Cons name ty tail) rout where
+  readEnv _ env = insert value tail
     where
     nameP = Proxy :: _ name
     value = readValue (reflectSymbol nameP) env :: Either EnvError ty
-    tail = readEnv (Proxy :: _ tail) (Proxy :: _ rin) env
+    tail = readEnv (Proxy :: _ tail) env
 
     insert (Right val) (Right builder) = Right $ RB.insert nameP val <<< builder
     insert (Right _) (Left errs) = Left errs
@@ -141,5 +140,5 @@ instance readEnvCons ::
     insert (Left err) (Left errs) = Left $ err : errs
 
 instance readEnvNil ::
-  ReadEnv Nil rout rout where
-  readEnv _ _ _ = pure $ RB.union {}
+  ReadEnv Nil () where
+  readEnv _ _ = pure $ RB.union {}
