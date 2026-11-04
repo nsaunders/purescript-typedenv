@@ -61,7 +61,8 @@ parseConfig = Either.lmap printEnvError <<< TypedEnv.fromEnv (Proxy :: _ Config)
 To run one of the [examples](examples), clone the repository and run the following command, replacing `<example-name>` with the name of the example.
 
 ```bash
-spago -x example.dhall run -m Example.<example-name>
+spago build --purs-args 'examples/**/*.purs'
+node --input-type=module -e 'import("./output/Example.<example-name>/index.js").then(m => m.main())'
 ```
 
 ### Installation
