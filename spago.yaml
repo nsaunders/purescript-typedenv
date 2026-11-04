@@ -1,0 +1,33 @@
+package:
+  name: typedenv
+  build:
+    strict: true
+  publish:
+    version: 2.0.2
+    license: MIT
+    location:
+      githubOwner: nsaunders
+      githubRepo: purescript-typedenv
+  dependencies:
+    - either: ">=6.1.0 <7.0.0"
+    - foreign-object: ">=4.0.0 <5.0.0"
+    - integers: ">=6.0.0 <7.0.0"
+    - lists: ">=7.0.0 <8.0.0"
+    - maybe: ">=6.0.0 <7.0.0"
+    - numbers: ">=9.0.0 <10.0.0"
+    - prelude: ">=6.0.0 <7.0.0"
+    - record: ">=4.0.0 <5.0.0"
+    - strings: ">=6.0.0 <7.0.0"
+    - typelevel-prelude: ">=7.0.0 <8.0.0"
+  test:
+    main: Test.Main
+    dependencies:
+      - aff: ">=7.0.0 <9.0.0"
+      - console: ">=6.0.0 <7.0.0"
+      - effect: ">=4.0.0 <5.0.0"
+      - foldable-traversable: ">=6.0.0 <7.0.0"
+      - node-process: ">=9.0.0 <12.0.0"
+      - spec: ">=7.0.0 <9.0.0"
+      - transformers: ">=6.0.0 <7.0.0"
+      - type-equality: ">=4.0.0 <5.0.0"
+workspace: {}
